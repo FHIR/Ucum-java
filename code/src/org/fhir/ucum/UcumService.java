@@ -22,8 +22,6 @@ import java.util.Set;
  * 
  * UCUM functionality that is useful for applications that make use of UCUM codes
  * 
- * This is a tightly bound interface - consumers use the internal model classes
- * 
  * @author Grahame Grieve
  *
  */
