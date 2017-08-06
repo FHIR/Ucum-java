@@ -26,6 +26,8 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
+//todo: change this to a set of JUnit tests
+
 public class UcumTester {
 
 	/**
