@@ -25,12 +25,10 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
-//todo: change this to a set of JUnit tests
-
 public class UcumTester {
 
     @Test
-    public void TestAsInteger() throws UcumException {
+    public void testAsInteger() throws UcumException {
         String message = "Failed to round trip the integer ";
 
         Assert.assertEquals(message + "0", 0, new Decimal(0).asInteger());
@@ -45,7 +43,7 @@ public class UcumTester {
     }
 
     @Test
-    public void TestStringSupport() throws UcumException {
+    public void testStringSupport() throws UcumException {
         String message = "decimal: ";
         Assert.assertEquals(message, "1", new Decimal("1").toString());
         Assert.assertEquals(message, "1", new Decimal("1e0").asDecimal());
@@ -230,7 +228,7 @@ public class UcumTester {
     }
 
     @Test
-    public void TestTruncate() throws UcumException {
+    public void testTruncate() throws UcumException {
         String message = "wrong trunc - ";
         Assert.assertEquals(message, "1", new Decimal("1").trunc().asDecimal());
         Assert.assertEquals(message, "1", new Decimal("1.01").trunc().asDecimal());
@@ -243,7 +241,7 @@ public class UcumTester {
     }
 
     @Test
-    public void TestCompares() throws UcumException {
+    public void testCompares() throws UcumException {
         int result =  new Decimal("1").comparesTo(new Decimal("1"));
         String message = getCompareMessage("1", "1", 0, result);
         Assert.assertEquals(message, 0, result);
@@ -280,7 +278,7 @@ public class UcumTester {
     }
 
     @Test
-    public void TestAddition() throws UcumException {
+    public void testAddition() throws UcumException {
         Decimal res = new Decimal("1").add(new Decimal("1"));
         String message = getAddSubMessage("1", "1", "2", "+", res);
         Assert.assertEquals(message, "2", res.asDecimal());
@@ -344,7 +342,7 @@ public class UcumTester {
     }
 
     @Test
-    public void TestSubtract() throws UcumException {
+    public void testSubtract() throws UcumException {
         Decimal res = new Decimal("2").subtract(new Decimal("1"));
         String message = getAddSubMessage("2", "1", "1", "-", res);
         Assert.assertEquals(message, "1", res.asDecimal());
@@ -405,7 +403,7 @@ public class UcumTester {
     }
 
     @Test
-    public void TestMultiply() throws UcumException {
+    public void testMultiply() throws UcumException {
         Decimal res = new Decimal("2").multiply(new Decimal("2"));
         String message = getAddSubMessage("2", "2", "4", "*", res);
         Assert.assertEquals(message, "4", res.asDecimal());
@@ -499,7 +497,7 @@ public class UcumTester {
     }
 
     @Test
-    public void TestDivide() throws UcumException {
+    public void testDivide() throws UcumException {
         Decimal res = new Decimal("500").divide(new Decimal("4"));
         String message = getAddSubMessage("500", "4", "125", "/", res);
         Assert.assertEquals(message, "125", res.asDecimal());
@@ -599,7 +597,7 @@ public class UcumTester {
     }
 
     @Test
-    public void TestIntegerDivide() throws UcumException {
+    public void testIntegerDivide() throws UcumException {
         Decimal res = new Decimal("500").divInt(new Decimal("4"));
         String message = getAddSubMessage("500", "4", "125", "/(int)", res);
         Assert.assertEquals(message, "125", res.asDecimal());
@@ -633,7 +631,7 @@ public class UcumTester {
     }
 
     @Test
-    public void TestModulo() throws UcumException {
+    public void testModulo() throws UcumException {
         Decimal res = new Decimal("10").modulo(new Decimal("1"));
         String message = getAddSubMessage("10", "1", "0", "%", res);
         Assert.assertEquals(message, "0", res.asDecimal());
@@ -642,42 +640,17 @@ public class UcumTester {
         Assert.assertEquals(message, "3", res.asDecimal());
     }
 
-    /**
-     * @param args
-     * @throws IOException
-     * @throws XmlPullParserException
-     * @throws UcumException
-     * @
-     */
-    public static void main(String[] args) throws XmlPullParserException, IOException, UcumException  {
-        JUnitCore.main("-definitions", "C:/Users/Christopher/IdeaProjects/ucum/src/main/resources/ucum-essence.xml", "-tests", "C:/Users/Christopher/IdeaProjects/ucum/src/main/resources/ucum-essence.xml");
-        if (args.length == 0) {
-            System.out.println("UCUM Tester - parameters:");
-            System.out.println("  -definitions [filename] - filename for the UCUM definitions");
-            System.out.println("  -tests [filename] - filename for the UCUM tests");
-            System.out.println("See http://unitsofmeasure.org/trac/ for source files for both ucum definitions");
-            System.out.println("(ucum-essence.xml) and tests (http://unitsofmeasure.org/trac/wiki/FunctionalTests)");
-        } else {
-            UcumTester worker = new UcumTester();
-//            int i = 0;
-//            while (i < args.length) {
-//                String a = args[i];
-//                i++;
-//                if (a.equalsIgnoreCase("-definitions"))
-//                    worker.setDefinitions(args[i]);
-//                else if (a.equalsIgnoreCase("-tests"))
-//                    worker.setTests(args[i]);
-//                else
-//                    System.out.println("Unknown parameter: '"+a+"'");
-//                i++;
-//            }
-            worker.setDefinitions(System.getProperty("definitions"));
-            worker.setTests(System.getProperty("tests"));
-            System.out.println("Defitions: " + worker.getDefinitions() + "\n" + "Tests: " + worker.getTests());
-            worker.execute();
-        }
-    }
+    @Test
+    public void testSuite() throws XmlPullParserException, IOException, UcumException {
+       UcumTester worker = new UcumTester();
+        worker.setDefinitions("src/main/resources/ucum-essence.xml");
+        worker.setTests("src/test/resources/UcumFunctionalTests.xml");
+        System.out.println("Defitions: " + worker.getDefinitions() + "\n" + "Tests: " + worker.getTests());
+        worker.execute();
 
+    }
+    
+    
     private String definitions;
     private String tests;
     public String getDefinitions() {
@@ -698,16 +671,16 @@ public class UcumTester {
     private int errCount;
 
     private void testDecimal() throws UcumException {
-        TestAsInteger();
-        TestStringSupport();
-        TestTruncate();
-        TestCompares();
-        TestAddition();
-        TestSubtract();
-        TestMultiply();
-        TestDivide();
-        TestIntegerDivide();
-        TestModulo();
+        testAsInteger();
+        testStringSupport();
+        testTruncate();
+        testCompares();
+        testAddition();
+        testSubtract();
+        testMultiply();
+        testDivide();
+        testIntegerDivide();
+        testModulo();
     }
 
     private void execute() throws XmlPullParserException, IOException, UcumException  {

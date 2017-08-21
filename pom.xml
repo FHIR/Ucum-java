@@ -11,11 +11,16 @@
     <dependencies>
 
         <dependency>
-            <groupId>xmlpull</groupId>
-            <artifactId>xmlpull</artifactId>
-            <version>1.1.3.1</version>
-        </dependency>
-
+            <groupId>xpp3</groupId>
+            <artifactId>xpp3</artifactId>
+            <version>1.1.4c</version>
+         </dependency>
+         <dependency>
+            <groupId>xpp3</groupId>
+            <artifactId>xpp3_xpath</artifactId>
+            <version>1.1.4c</version>
+         </dependency>
+         
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -136,10 +141,11 @@
                 <!--</executions>-->
             <!--</plugin>-->
 
+            <!-- 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.5</version>
+                <version>1.6</version>
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>
@@ -150,6 +156,7 @@
                     </execution>
                 </executions>
             </plugin>
+            -->
 
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
