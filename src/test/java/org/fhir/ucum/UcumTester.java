@@ -647,8 +647,29 @@ public class UcumTester {
         System.out.println("Defitions: " + worker.getDefinitions() + "\n" + "Tests: " + worker.getTests());
         worker.execute();
     }
-    
-    
+
+    @Test
+    public void testDecimalPrecission() throws IOException, UcumException {
+
+        String fileName = "ucum-essence.xml";
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource(fileName).getFile());
+
+       InputStream inputStream = new FileInputStream(file);
+
+        UcumEssenceService ucumService = new UcumEssenceService(inputStream);
+        Decimal result = ucumService.convert(new Decimal("15"), "/min", "/h");
+        Assert.assertEquals(result.asDecimal(), 900);
+    }
+
+    @Test
+    public void testDecimalEquals() throws IOException, UcumException {
+
+        Decimal dec1 = new Decimal(42);
+        Decimal dec2 = new Decimal(42);
+        Assert.assertEquals(dec1, dec2);
+    }
+
     private String definitions;
     private String tests;
 
