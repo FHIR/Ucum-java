@@ -13,17 +13,16 @@ package org.fhir.ucum;
  *
  ******************************************************************************/
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.JUnitCore;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class UcumTester {
 
@@ -242,37 +241,37 @@ public class UcumTester {
 
     @Test
     public void testCompares() throws UcumException {
-        int result =  new Decimal("1").comparesTo(new Decimal("1"));
+        int result = new Decimal("1").comparesTo(new Decimal("1"));
         String message = getCompareMessage("1", "1", 0, result);
         Assert.assertEquals(message, 0, result);
-        result =  new Decimal("0").comparesTo(new Decimal("0"));
+        result = new Decimal("0").comparesTo(new Decimal("0"));
         message = getCompareMessage("0", "0", 0, result);
         Assert.assertEquals(message, 0, result);
-        result =  new Decimal("0").comparesTo(new Decimal("1"));
+        result = new Decimal("0").comparesTo(new Decimal("1"));
         message = getCompareMessage("0", "1", -1, result);
         Assert.assertEquals(message, -1, result);
-        result =  new Decimal("1").comparesTo(new Decimal("0"));
+        result = new Decimal("1").comparesTo(new Decimal("0"));
         message = getCompareMessage("1", "0", 1, result);
         Assert.assertEquals(message, 1, result);
-        result =  new Decimal("10").comparesTo(new Decimal("10"));
+        result = new Decimal("10").comparesTo(new Decimal("10"));
         message = getCompareMessage("10", "10", 0, result);
         Assert.assertEquals(message, 0, result);
-        result =  new Decimal("100").comparesTo(new Decimal("100"));
+        result = new Decimal("100").comparesTo(new Decimal("100"));
         message = getCompareMessage("100", "100", 0, result);
         Assert.assertEquals(message, 0, result);
-        result =  new Decimal("0.1").comparesTo(new Decimal("0.1"));
+        result = new Decimal("0.1").comparesTo(new Decimal("0.1"));
         message = getCompareMessage("0.1", "0.1", 0, result);
         Assert.assertEquals(message, 0, result);
-        result =  new Decimal("0.01").comparesTo(new Decimal("0.01"));
+        result = new Decimal("0.01").comparesTo(new Decimal("0.01"));
         message = getCompareMessage("0.01", "0.01", 0, result);
         Assert.assertEquals(message, 0, result);
-        result =  new Decimal("0.01").comparesTo(new Decimal("0.0100"));
+        result = new Decimal("0.01").comparesTo(new Decimal("0.0100"));
         message = getCompareMessage("0.01", "0.0100", 0, result);
         Assert.assertEquals(message, 0, result);
-        result =  new Decimal("1").comparesTo(new Decimal("1.00000000"));
+        result = new Decimal("1").comparesTo(new Decimal("1.00000000"));
         message = getCompareMessage("1", "1.00000000", 0, result);
         Assert.assertEquals(message, 0, result);
-        result =  new Decimal("1.111111").comparesTo(new Decimal("1.111111"));
+        result = new Decimal("1.111111").comparesTo(new Decimal("1.111111"));
         message = getCompareMessage("1.111111", "1.111111", 0, result);
         Assert.assertEquals(message, 0, result);
     }
@@ -308,7 +307,7 @@ public class UcumTester {
         Assert.assertEquals(message, "321", res.asDecimal());
         res = new Decimal("15300000000000000000000000000000000001").add(new Decimal("1680"));
         message = getAddSubMessage("\"15300000000000000000000000000000000001", "1680", "15300000000000000000000000000000001681", "+", res);
-        Assert.assertEquals(message , "15300000000000000000000000000000001681", res.asDecimal());
+        Assert.assertEquals(message, "15300000000000000000000000000000001681", res.asDecimal());
         res = new Decimal("1").add(new Decimal(".1"));
         message = getAddSubMessage("1", ".1", "1.1", "+", res);
         Assert.assertEquals(message, "1.1", res.asDecimal());
@@ -642,26 +641,29 @@ public class UcumTester {
 
     @Test
     public void testSuite() throws XmlPullParserException, IOException, UcumException {
-       UcumTester worker = new UcumTester();
+        UcumTester worker = new UcumTester();
         worker.setDefinitions("src/main/resources/ucum-essence.xml");
         worker.setTests("src/test/resources/UcumFunctionalTests.xml");
         System.out.println("Defitions: " + worker.getDefinitions() + "\n" + "Tests: " + worker.getTests());
         worker.execute();
-
     }
     
     
     private String definitions;
     private String tests;
+
     public String getDefinitions() {
         return definitions;
     }
+
     public void setDefinitions(String definitions) {
         this.definitions = definitions;
     }
+
     public String getTests() {
         return tests;
     }
+
     public void setTests(String tests) {
         this.tests = tests;
     }
@@ -683,7 +685,7 @@ public class UcumTester {
         testModulo();
     }
 
-    private void execute() throws XmlPullParserException, IOException, UcumException  {
+    private void execute() throws XmlPullParserException, IOException, UcumException {
 
         testDecimal();
 
@@ -701,7 +703,7 @@ public class UcumTester {
         if (eventType != XmlPullParser.START_TAG)
             throw new XmlPullParserException("Unable to process XML document");
         if (!xpp.getName().equals("ucumTests"))
-            throw new XmlPullParserException("Unable to process XML document: expected 'ucumTests' but found '"+xpp.getName()+"'");
+            throw new XmlPullParserException("Unable to process XML document: expected 'ucumTests' but found '" + xpp.getName() + "'");
 
         xpp.next();
         while (xpp.getEventType() != XmlPullParser.END_TAG) {
@@ -709,7 +711,7 @@ public class UcumTester {
                 if (Utilities.isWhitespace(xpp.getText()))
                     xpp.next();
                 else
-                    throw new XmlPullParserException("Unexpected text "+xpp.getText());
+                    throw new XmlPullParserException("Unexpected text " + xpp.getText());
             } else if (xpp.getName().equals("history"))
                 skipElement(xpp);
             else if (xpp.getName().equals("validation"))
@@ -721,30 +723,30 @@ public class UcumTester {
             else if (xpp.getName().equals("multiplication"))
                 runMultiplication(xpp);
             else
-                throw new XmlPullParserException("unknown element name "+xpp.getName());
+                throw new XmlPullParserException("unknown element name " + xpp.getName());
         }
         xpp.next();
         if (errCount > 0)
-            System.err.println(Integer.toString(errCount)+" errors");
+            System.err.println(Integer.toString(errCount) + " errors");
     }
 
-    private void runMultiplication(XmlPullParser xpp) throws XmlPullParserException, IOException, UcumException  {
+    private void runMultiplication(XmlPullParser xpp) throws XmlPullParserException, IOException, UcumException {
         xpp.next();
         while (xpp.getEventType() != XmlPullParser.END_TAG) {
             if (xpp.getEventType() == XmlPullParser.TEXT) {
                 if (Utilities.isWhitespace(xpp.getText()))
                     xpp.next();
                 else
-                    throw new XmlPullParserException("Unexpected text "+xpp.getText());
+                    throw new XmlPullParserException("Unexpected text " + xpp.getText());
             } else if (xpp.getName().equals("case"))
                 runMultiplicationCase(xpp);
             else
-                throw new XmlPullParserException("unknown element name "+xpp.getName());
+                throw new XmlPullParserException("unknown element name " + xpp.getName());
         }
         xpp.next();
     }
 
-    private void runMultiplicationCase(XmlPullParser xpp) throws XmlPullParserException, IOException, UcumException  {
+    private void runMultiplicationCase(XmlPullParser xpp) throws XmlPullParserException, IOException, UcumException {
 
         String id = xpp.getAttributeValue(null, "id");
         String v1 = xpp.getAttributeValue(null, "v1");
@@ -758,12 +760,12 @@ public class UcumTester {
         Pair o2 = new Pair(new Decimal(v2), u2);
         Pair o3 = ucumSvc.multiply(o1, o2);
 
-        debug("Multiplication Test "+id+": the value '"+v1+" "+u1+"' * '"+v2+" "+u2+"' ==> "+o3.getValue().toString()+" "+o3.getCode());
+        debug("Multiplication Test " + id + ": the value '" + v1 + " " + u1 + "' * '" + v2 + " " + u2 + "' ==> " + o3.getValue().toString() + " " + o3.getCode());
 
         // if (!res.toPlainString().equals(outcome)) { - that assumes that we can get the precision right, which we can't
         if (o3.getValue().comparesTo(new Decimal(vRes)) != 0 || !o3.getCode().equals(uRes)) {
             errCount++;
-            System.err.println("Test "+id+": The value '"+vRes+" "+uRes+"' was expected, but the result was "+o3.getValue().toString()+" "+o3.getCode());
+            System.err.println("Test " + id + ": The value '" + vRes + " " + uRes + "' was expected, but the result was " + o3.getValue().toString() + " " + o3.getCode());
         }
         while (xpp.getEventType() != XmlPullParser.END_TAG)
             xpp.next();
@@ -779,37 +781,37 @@ public class UcumTester {
         return String.format("%s %s %s = %s, but the library returned %s", s1, op, s2, s3, result.asDecimal());
     }
 
-    private void runConversion(XmlPullParser xpp) throws XmlPullParserException, IOException, UcumException  {
+    private void runConversion(XmlPullParser xpp) throws XmlPullParserException, IOException, UcumException {
         xpp.next();
         while (xpp.getEventType() != XmlPullParser.END_TAG) {
             if (xpp.getEventType() == XmlPullParser.TEXT) {
                 if (Utilities.isWhitespace(xpp.getText()))
                     xpp.next();
                 else
-                    throw new XmlPullParserException("Unexpected text "+xpp.getText());
+                    throw new XmlPullParserException("Unexpected text " + xpp.getText());
             } else if (xpp.getName().equals("case"))
                 runConversionCase(xpp);
             else
-                throw new XmlPullParserException("unknown element name "+xpp.getName());
+                throw new XmlPullParserException("unknown element name " + xpp.getName());
         }
         xpp.next();
     }
 
-    private void runConversionCase(XmlPullParser xpp) throws XmlPullParserException, IOException, UcumException  {
+    private void runConversionCase(XmlPullParser xpp) throws XmlPullParserException, IOException, UcumException {
 
         String id = xpp.getAttributeValue(null, "id");
         String value = xpp.getAttributeValue(null, "value");
         String srcUnit = xpp.getAttributeValue(null, "srcUnit");
         String dstUnit = xpp.getAttributeValue(null, "dstUnit");
         String outcome = xpp.getAttributeValue(null, "outcome");
-        System.out.println("case "+id+": "+value+" "+srcUnit+" -> "+outcome+" "+dstUnit);
+        System.out.println("case " + id + ": " + value + " " + srcUnit + " -> " + outcome + " " + dstUnit);
         Decimal res = ucumSvc.convert(new Decimal(value), srcUnit, dstUnit);
-        debug("Convert Test "+id+": the value '"+value+" "+srcUnit+"' ==> "+res.toString()+" "+dstUnit);
+        debug("Convert Test " + id + ": the value '" + value + " " + srcUnit + "' ==> " + res.toString() + " " + dstUnit);
 
         // if (!res.toPlainString().equals(outcome)) { - that assumes that we can get the precision right, which we can't
         if (res.comparesTo(new Decimal(outcome)) != 0) {
             errCount++;
-            System.err.println("Test "+id+": The value '"+outcome+"' was expected the result was "+res.toString());
+            System.err.println("Test " + id + ": The value '" + outcome + "' was expected the result was " + res.toString());
         }
         while (xpp.getEventType() != XmlPullParser.END_TAG)
             xpp.next();
@@ -821,56 +823,57 @@ public class UcumTester {
         System.out.println(string);
 
     }
-    private void runDisplayNameGeneration(XmlPullParser xpp) throws XmlPullParserException, IOException, UcumException  {
+
+    private void runDisplayNameGeneration(XmlPullParser xpp) throws XmlPullParserException, IOException, UcumException {
         xpp.next();
         while (xpp.getEventType() != XmlPullParser.END_TAG) {
             if (xpp.getEventType() == XmlPullParser.TEXT) {
                 if (Utilities.isWhitespace(xpp.getText()))
                     xpp.next();
                 else
-                    throw new XmlPullParserException("Unexpected text "+xpp.getText());
+                    throw new XmlPullParserException("Unexpected text " + xpp.getText());
             } else if (xpp.getName().equals("case"))
                 runDisplayNameGenerationCase(xpp);
             else
-                throw new XmlPullParserException("unknown element name "+xpp.getName());
+                throw new XmlPullParserException("unknown element name " + xpp.getName());
         }
         xpp.next();
     }
 
-    private void runDisplayNameGenerationCase(XmlPullParser xpp) throws XmlPullParserException, IOException, UcumException  {
+    private void runDisplayNameGenerationCase(XmlPullParser xpp) throws XmlPullParserException, IOException, UcumException {
         String id = xpp.getAttributeValue(null, "id");
         String unit = xpp.getAttributeValue(null, "unit");
         String display = xpp.getAttributeValue(null, "display");
 
         String res = ucumSvc.analyse(unit);
-        debug("Analyse Test "+id+": the unit '"+unit+"' ==> "+res);
+        debug("Analyse Test " + id + ": the unit '" + unit + "' ==> " + res);
 
         if (!res.equals(display)) {
             errCount++;
-            System.err.println("Test "+id+": The unit '"+unit+"' was expected to be displayed as '"+display+"', but was displayed as "+res);
+            System.err.println("Test " + id + ": The unit '" + unit + "' was expected to be displayed as '" + display + "', but was displayed as " + res);
         }
         while (xpp.getEventType() != XmlPullParser.END_TAG)
             xpp.next();
         xpp.next();
     }
 
-    private void runValidationTests(XmlPullParser xpp) throws XmlPullParserException, IOException  {
+    private void runValidationTests(XmlPullParser xpp) throws XmlPullParserException, IOException {
         xpp.next();
         while (xpp.getEventType() != XmlPullParser.END_TAG) {
             if (xpp.getEventType() == XmlPullParser.TEXT) {
                 if (Utilities.isWhitespace(xpp.getText()))
                     xpp.next();
                 else
-                    throw new XmlPullParserException("Unexpected text "+xpp.getText());
+                    throw new XmlPullParserException("Unexpected text " + xpp.getText());
             } else if (xpp.getName().equals("case"))
                 runValidationCase(xpp);
             else
-                throw new XmlPullParserException("unknown element name "+xpp.getName());
+                throw new XmlPullParserException("unknown element name " + xpp.getName());
         }
         xpp.next();
     }
 
-    private void runValidationCase(XmlPullParser xpp) throws XmlPullParserException, IOException  {
+    private void runValidationCase(XmlPullParser xpp) throws XmlPullParserException, IOException {
         String id = xpp.getAttributeValue(null, "id");
         String unit = xpp.getAttributeValue(null, "unit");
         boolean valid = "true".equals(xpp.getAttributeValue(null, "valid"));
@@ -879,23 +882,23 @@ public class UcumTester {
         String res = ucumSvc.validate(unit);
         boolean result = res == null;
         if (result)
-            debug("Validation Test "+id+": the unit '"+unit+"' is valid");
+            debug("Validation Test " + id + ": the unit '" + unit + "' is valid");
         else
-            debug("Validation Test "+id+": the unit '"+unit+"' is not valid because "+res);
+            debug("Validation Test " + id + ": the unit '" + unit + "' is not valid because " + res);
 
         if (valid != result) {
             errCount++;
             if (valid)
-                System.err.println("Test "+id+": The unit '"+unit+"' was expected to be valid, but wasn't accepted");
+                System.err.println("Test " + id + ": The unit '" + unit + "' was expected to be valid, but wasn't accepted");
             else
-                System.err.println("Test "+id+": The unit '"+unit+"' was expected to be invalid because '"+reason+"', but was accepted");
+                System.err.println("Test " + id + ": The unit '" + unit + "' was expected to be invalid because '" + reason + "', but was accepted");
         }
         while (xpp.getEventType() != XmlPullParser.END_TAG)
             xpp.next();
         xpp.next();
     }
 
-    private void skipElement(XmlPullParser xpp) throws XmlPullParserException, IOException  {
+    private void skipElement(XmlPullParser xpp) throws XmlPullParserException, IOException {
         xpp.next();
         while (xpp.getEventType() != XmlPullParser.END_TAG) {
             if (xpp.getEventType() == XmlPullParser.START_TAG)
