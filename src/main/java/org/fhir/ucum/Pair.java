@@ -11,6 +11,8 @@
 
 package org.fhir.ucum;
 
+import java.util.Objects;
+
 public class Pair {
 
 	private Decimal value;
@@ -38,5 +40,19 @@ public class Pair {
 	public String getCode() {
 		return code;
 	}
-	
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Pair pair = (Pair) o;
+        return Objects.equals(value, pair.value) &&
+            Objects.equals(code, pair.code);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(value, code);
+    }
 }

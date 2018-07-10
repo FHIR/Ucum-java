@@ -12,6 +12,8 @@ package org.fhir.ucum;
  *    Health Intersections P/L - port to Java
  *******************************************************************************/
 
+import java.util.Objects;
+
 /**
     Precision aware Decimal implementation. Any size number with any number of significant digits is supported.
 
@@ -51,8 +53,8 @@ public class Decimal {
 	private Decimal() {
 		super();
 	}
-	
-	public Decimal(String value) throws UcumException  {
+
+    public Decimal(String value) throws UcumException  {
 		super();
 		value = value.toLowerCase();
 		if (value.contains("e"))
@@ -780,6 +782,21 @@ public class Decimal {
 	  d.negative = false;
 	  return d;
   }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Decimal decimal1 = (Decimal) o;
+        return precision == decimal1.precision &&
+            scientific == decimal1.scientific &&
+            negative == decimal1.negative &&
+            decimal == decimal1.decimal &&
+            Objects.equals(digits, decimal1.digits);
+    }
 
+    @Override
+    public int hashCode() {
 
+        return Objects.hash(precision, scientific, negative, digits, decimal);
+    }
 }
