@@ -708,27 +708,33 @@ public class Decimal {
 				prec = Math.max(precision, r.length() - d);
 			else
 				prec = Math.max(Math.min(precision, other.precision), r.length() - d);
-			while (r.length() > prec) {
-				boolean up = (r.charAt(r.length()-1) > '5');
-				r = delete(r, r.length()-1, 1);
-				if (up) {
-					char[] rs = r.toCharArray();
-					int i = r.length()-1;
-					while (up && i > 0) {
-						up = rs[i] == '9';
-						if (up)
-							rs[i] = '0';
-						else
-							rs[i] = cdig(dig(rs[i])+1);
-						i--;
-					}
-					if (up) {
-						r = '1'+new String(rs);
-						d++;
-					} else
-						r = new String(rs);
-				}
-				d--;
+			if (r.length() > prec) {
+			  d = d - (r.length() - prec);
+			  char dig = r.charAt(prec);
+			  boolean up = dig >= '5';
+			  if (up) {
+			    char[] rs = r.substring(0, prec).toCharArray();
+			    int i = rs.length-1;
+			    boolean carry = true;
+			    while (carry && i >= 0) {
+	          char ls = rs[i];
+	          if (ls == '9') { 
+	            rs[i] = '0';
+	          } else { 
+ 			        ls = (char) (((int) ls) + 1);
+ 			        rs[i] = ls;
+ 			       carry = false;
+	          }
+	          i--;
+			    }
+			    if (carry) {
+            r = "1"+new String(rs);
+            d++; // cause we added one at the start
+          }
+			    else
+            r = new String(rs);
+			  } else 
+			    r = r.substring(0, prec);
 			}
 		}
 
@@ -781,5 +787,16 @@ public class Decimal {
 	  return d;
   }
 
+  @Override
+  public boolean equals(Object other) {
+    if (other instanceof Decimal)
+      return asDecimal().equals(((Decimal) other).asDecimal());
+    else
+      return super.equals(other);
+  }
 
+  @Override
+  public int hashCode() {
+    return asDecimal().hashCode();
+  }
 }

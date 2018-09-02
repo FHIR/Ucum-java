@@ -38,5 +38,23 @@ public class Pair {
 	public String getCode() {
 		return code;
 	}
+  @Override
+  public boolean equals(Object other) {
+    if (other instanceof Pair) {
+      Pair p = (Pair) other;
+      return value.equals(p.value) && code.equals(p.code);
+    } else
+      return super.equals(other);
+  }
+  
+  @Override
+  public int hashCode() {
+    return toString().hashCode();
+  }
+  @Override
+  public String toString() {
+    return value.toString()+" "+code;
+  }
+	
 	
 }
