@@ -11,7 +11,8 @@ public class UcumTestsIsssue10 {
 
   @Before
   public void setup() throws Exception {
-      ucumSvc = new UcumEssenceService(new FileInputStream("C:\\work\\org.hl7.fhir\\build\\tests\\ucum-essence.xml"));
+      ucumSvc = new UcumEssenceService("src/main/resources/ucum-essence.xml");
+      //ucumSvc = new UcumEssenceService(new FileInputStream("C:\\work\\org.hl7.fhir\\build\\tests\\ucum-essence.xml"));
   }
   
   @Test
