@@ -285,6 +285,13 @@ public class UcumEssenceService implements UcumService {
 	  return getCanonicalForm(res);
 	}
 
+  @Override
+  public Pair divideBy(Pair dividend, Pair divisor) throws UcumException  {
+    Pair res = new Pair(dividend.getValue().divide(divisor.getValue()), 
+        (dividend.getCode().contains("/") || dividend.getCode().contains("*") ? "("+ dividend.getCode() +")" : dividend.getCode())+"/"+(divisor.getCode().contains("/") || divisor.getCode().contains("*") ? "("+ divisor.getCode()+")" : divisor.getCode()));
+    return getCanonicalForm(res);
+  }
+
 	@Override
   public String getCommonDisplay(String code) {
 		//TODO: improvements

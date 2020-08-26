@@ -201,7 +201,18 @@ public interface UcumService {
 	 * @throws UcumException 
 	 * @ 
 	 */
-	public abstract Pair multiply(Pair o1, Pair o2) throws UcumException ;
+  public abstract Pair multiply(Pair o1, Pair o2) throws UcumException ;
+
+  /**
+   * dvide two value/units pairs and return the result in canonical units
+   * 
+   * @param dividend
+   * @param divisor
+   * @return
+   * @throws UcumException 
+   * @ 
+   */
+	public abstract Pair divideBy(Pair dividend, Pair divisor) throws UcumException ;
 
 
 	/**
