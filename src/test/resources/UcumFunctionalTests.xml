@@ -710,7 +710,7 @@
 	-->
     <case id="4-101" v1="1.5" u1="g"         v2="2"   u2="m"    vRes="0.75"          uRes="g.m-1"/>
     <case id="4-102" v1="2"   u1="m"         v2="1.5" u2="g"    vRes="1.3333333333"  uRes="g-1.m"/>
-    <case id="4-103" v1="1"   u1="[lb_av]/h" v2="1"   u2="kg/s" vRes="0.00012599803" uRes=""/>  <!-- #17: u1, u2 are comparable, so uRes is unity  -->
+    <case id="4-103" v1="1"   u1="[lb_av]/h" v2="1"   u2="kg/s" vRes="0.00012599803" uRes=""/>  <!-- #19: u1, u2 are comparable, so uRes is unity  -->
   </division>
   
     
