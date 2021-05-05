@@ -90,6 +90,56 @@ public class UcumCommonUnitsTest extends Assert
         }
     }
 
+
+    @Test
+    public void convert2() throws UcumException
+    {
+        Map<String, List<CommonUnit>> map = new HashMap<>();
+        for (CommonUnit cu : units)
+        {
+            // BUG?
+            if ("dB".equals(cu.unit))
+                continue;
+            String can = ucumSvc.getCanonicalUnits(cu.unit);
+            if (null == can || "".equals(can))
+                continue;
+            if (!map.containsKey(can))
+                map.put(can, new ArrayList<>());
+            map.get(can).add(cu);
+        }
+        for (String can : map.keySet())
+        {
+            List<CommonUnit> list = map.get(can);
+            convertAll(list);
+        }
+    }
+
+
+    private void convertAll(List<CommonUnit> list) throws UcumException
+    {
+        Decimal K = new Decimal("2.3", 15);
+        for (CommonUnit a : list)
+        {
+            for (CommonUnit b : list)
+            {
+                try
+                {
+                    // BUG?
+                    if ("[pH]".equals(a.unit))
+                        continue;
+                    if ("Cel".equals(a.unit) || "[degF]".equals(a.unit))
+                        continue;
+                    ucumSvc.convert(K, a.unit, b.unit);
+                }
+                catch (Exception x)
+                {
+                    System.out.println(a.unit + "->" + b.unit + " : " + (x.getMessage()==null ? x.toString() : x.getMessage()));
+                }
+            }
+        }
+    }
+
+
     //@Test
     public void duplicates()
     {
