@@ -40,9 +40,10 @@ import org.fhir.ucum.special.Registry;
  */
 public class UcumEssenceService implements UcumService {
 
+    private static final long serialVersionUID = 1058845586935921655L;
 	public static final String UCUM_OID = "2.16.840.1.113883.6.8";
-	
-	private UcumModel model;
+
+    private UcumModel model;
 	private Registry handlers = new Registry();
 	
 	/**

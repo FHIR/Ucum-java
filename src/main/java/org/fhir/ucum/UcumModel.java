@@ -11,13 +11,16 @@
 
 package org.fhir.ucum;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class UcumModel {
+public class UcumModel implements Serializable {
 
-	/**
+    private static final long serialVersionUID = 2263441561255569053L;
+    
+    /**
 	 * version="1.7" 
 	 */
 	private String version;

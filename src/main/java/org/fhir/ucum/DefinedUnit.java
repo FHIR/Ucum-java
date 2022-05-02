@@ -14,7 +14,9 @@ package org.fhir.ucum;
 
 public class DefinedUnit extends Unit{
 
-	/**
+    private static final long serialVersionUID = 6610597337302313079L;
+    
+    /**
 	 * whether this is a metric unit or not
 	 */
 	private boolean metric;

@@ -22,7 +22,9 @@ import org.fhir.ucum.Decimal;
  */
 public class HoldingHandler extends SpecialUnitHandler {
 
-	private String code;
+    private static final long serialVersionUID = -6165027832340262895L;
+    
+    private String code;
 	private String units;
 	private Decimal value = Decimal.one();
 	

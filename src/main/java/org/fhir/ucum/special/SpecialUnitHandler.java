@@ -11,11 +11,14 @@
 
 package org.fhir.ucum.special;
 
+import java.io.Serializable;
 import org.fhir.ucum.Decimal;
 
-public abstract class SpecialUnitHandler {
+public abstract class SpecialUnitHandler implements Serializable {
 
-	/**
+    private static final long serialVersionUID = 1000724308948489980L;
+
+    /**
 	 * Used to connect this handler with the case sensitive unit
 	 * @return
 	 */

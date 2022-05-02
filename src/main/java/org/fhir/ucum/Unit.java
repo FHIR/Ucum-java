@@ -14,7 +14,9 @@ package org.fhir.ucum;
 
 public abstract class Unit extends Concept {
 
-	/**
+    private static final long serialVersionUID = -359123350391877225L;
+    
+    /**
 	 * kind of thing this base unit represents
 	 */
 	private String property;

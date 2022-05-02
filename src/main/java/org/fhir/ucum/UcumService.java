@@ -12,6 +12,7 @@ package org.fhir.ucum;
  *    Health Intersections - ongoing maintenance
  *******************************************************************************/
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -25,7 +26,7 @@ import java.util.Set;
  * @author Grahame Grieve
  *
  */
-public interface UcumService {
+public interface UcumService extends Serializable {
 
 	/**
 	 * provided for various utility/QA uses. Should not be used 
