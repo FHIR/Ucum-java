@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.fhir.ucum.serializing.DefinitionParserFactory;
 import org.fhir.ucum.special.Registry;
 
 
@@ -54,7 +55,7 @@ public class UcumEssenceService implements UcumService {
 		super();
 		assert stream != null : paramError("factory", "stream", "must not be null");
 		try {
-			model = new DefinitionParser().parse(stream);
+			model = DefinitionParserFactory.getParser().parse(stream);
 		} catch (Exception e) {
 			throw new UcumException(e); 
 		}
@@ -69,7 +70,7 @@ public class UcumEssenceService implements UcumService {
 		super();
 		assert new File(filename).exists() : paramError("factory", "file", "must exist");
 		try {
-			model = new DefinitionParser().parse(filename);
+			model = DefinitionParserFactory.getParser().parse(filename);
 		} catch (Exception e) {
 			throw new UcumException(e); 
 		}

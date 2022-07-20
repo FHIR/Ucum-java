@@ -30,11 +30,10 @@ public class UcumTester {
     @Test
     public void testSuite() throws XmlPullParserException, IOException, UcumException {
        UcumTester worker = new UcumTester();
-        worker.setDefinitions("src/main/resources/ucum-essence.xml");
+        worker.setDefinitions("../ucum/src/main/resources/ucum-essence.xml");
         worker.setTests("src/test/resources/UcumFunctionalTests.xml");
         System.out.println("Defitions: " + worker.getDefinitions() + "\n" + "Tests: " + worker.getTests());
         worker.execute();
-
     }
     
     

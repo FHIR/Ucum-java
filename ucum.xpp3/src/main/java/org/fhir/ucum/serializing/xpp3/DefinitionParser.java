@@ -9,7 +9,7 @@
  *    Kestral Computing P/L - initial implementation
  *******************************************************************************/
 
-package org.fhir.ucum;
+package org.fhir.ucum.serializing.xpp3;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,6 +20,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.fhir.ucum.*;
+import org.fhir.ucum.serializing.DefinitionParserException;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -32,13 +34,21 @@ import org.xmlpull.v1.XmlPullParserFactory;
  *
  */
 
-public class DefinitionParser {
+public class DefinitionParser implements org.fhir.ucum.serializing.DefinitionParser {
 
-	public UcumModel parse(String filename) throws UcumException, XmlPullParserException, IOException, ParseException  {
-		return parse(new FileInputStream(new File(filename)));
-	}
+    public UcumModel parse(String filename) throws DefinitionParserException, IOException, ParseException, UcumException {
+        return parse(new FileInputStream(new File(filename)));
+    }
 
-	public UcumModel parse(InputStream stream) throws XmlPullParserException, IOException, ParseException, UcumException  {
+    public UcumModel parse(InputStream stream) throws DefinitionParserException, IOException, ParseException, UcumException {
+        try {
+            return parseInternal(stream);
+        } catch (XmlPullParserException e) {
+            throw new DefinitionParserException(e.getMessage(), e.getLineNumber(), e.getColumnNumber(), e.getDetail());
+        }
+    }
+
+	private UcumModel parseInternal(InputStream stream) throws XmlPullParserException, IOException, ParseException, UcumException  {
 		XmlPullParserFactory factory = XmlPullParserFactory.newInstance(
 				System.getProperty(XmlPullParserFactory.PROPERTY_NAME), null);
 		factory.setNamespaceAware(true);
