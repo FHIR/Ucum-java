@@ -15,7 +15,11 @@
 
     <modules>
         <module>ucum</module>
-        <module>ucum.xpp3</module>
+        <module>ucum.test-resources</module>
+
+        <module>ucum.xmlpull</module>
+        <module>ucum.xmlpull.xpp3</module>
+        <module>ucum.xmlpull.android</module>
     </modules>
 
     <scm>
@@ -51,6 +55,13 @@
                 <groupId>xpp3</groupId>
                 <artifactId>xpp3_xpath</artifactId>
                 <version>1.1.4c</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.fhir</groupId>
+                <artifactId>ucum.test-resources</artifactId>
+                <version>1.0.3</version>
+                <scope>test</scope>
             </dependency>
 
             <dependency>
