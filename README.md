@@ -15,9 +15,12 @@ UcumService ucumSvc = new UcumEssenceService(definitionFile);
 
 # Usage
 
-Declare dependency on `org.fhir:ucum`, one of the `ucum-essence` types of parsers `ucum.xmlpull` and one of the available implementations. 
+Declare dependencies on: 
+1. the base module `org.fhir:ucum`;
+2. the ucum-essence parsing interface module `org.fhir:ucum.xmlpull`; 
+3. and one of the available implementations: `org.fhir:ucum.xpp3`, `org.fhir:ucum.android`, `org.fhir:ucum.mxp1`. 
 
-For Java desktop/server, we recommend using XPP3: 
+For Java 9+, we recommend using MXP1:
 ```xml
 <dependency>
     <groupId>org.fhir</groupId>
@@ -31,12 +34,31 @@ For Java desktop/server, we recommend using XPP3:
 </dependency>
 <dependency>
     <groupId>org.fhir</groupId>
-    <artifactId>ucum.xpp3</artifactId>
+    <artifactId>ucum.xmlpull.mxp1</artifactId>
     <version>1.0.3</version>
 </dependency>
 ```
 
-Android provides it's own XML Pull Parser implementation, use the `ucum.xmlpull.android` to avoid loading additional XML tools: 
+For older versions of Java, we recommend using XPP3: 
+```xml
+<dependency>
+    <groupId>org.fhir</groupId>
+    <artifactId>ucum</artifactId>
+    <version>1.0.3</version>
+</dependency>
+<dependency>
+  <groupId>org.fhir</groupId>
+  <artifactId>ucum.xmlpull</artifactId>
+  <version>1.0.3</version>
+</dependency>
+<dependency>
+    <groupId>org.fhir</groupId>
+    <artifactId>ucum.xmlpull.xpp3</artifactId>
+    <version>1.0.3</version>
+</dependency>
+```
+
+Android provides its own XML Pull Parser implementation, use the `ucum.xmlpull.android` to avoid loading additional XML tools: 
 ```xml
 <dependency>
     <groupId>org.fhir</groupId>
