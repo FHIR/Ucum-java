@@ -82,10 +82,11 @@ Android provides its own XML Pull Parser implementation, use the `ucum.xmlpull.a
 This repository contains the following modules:
 
 | Module Name          | Description                                            |
-| -------------------- |--------------------------------------------------------|
+|----------------------|--------------------------------------------------------|
 | ucum                 | Base implementation of Ucum                            | 
 | ucum.xmlpull         | Ucum-essence Parser using XMLPull (not provided)       |
-| ucum.xmlpull.xpp3    | Ucum-essence Parser using XMLPull from XPP3            |
+| ucum.xmlpull.xpp3    | Ucum-essence Parser using XMLPull from XPP3 (Old Java) |
+| ucum.xmlpull.mxp1    | Ucum-essence Parser using XMLPull from MXP1 (Java 9+)  |
 | ucum.xmlpull.android | Ucum-essence Parser using XMLPull from the Android SDK |
 | ucum.test-resources  | Shared Test resources                                  |
 
