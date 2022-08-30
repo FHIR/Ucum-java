@@ -18,7 +18,7 @@ UcumService ucumSvc = new UcumEssenceService(definitionFile);
 Declare dependencies on: 
 1. the base module `org.fhir:ucum`;
 2. the ucum-essence parsing interface module `org.fhir:ucum.xmlpull`; 
-3. and one of the available implementations: `org.fhir:ucum.xpp3`, `org.fhir:ucum.android`, `org.fhir:ucum.mxp1`. 
+3. and one of the available implementations: `org.fhir:ucum.xmlpull.xpp3`, `org.fhir:ucum.xmlpull.android`, `org.fhir:ucum.xmlpull.mxp1`. 
 
 For Java 9+, we recommend using MXP1:
 ```xml

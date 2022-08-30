@@ -18,6 +18,6 @@ public class DefinitionParserFactory {
         if (providers(false).hasNext()) {
             return providers(false).next().create();
         }
-        throw new RuntimeException("No ModelInfoReaderProviders found");
+        throw new RuntimeException("No XML Parsers found. Choose a dependency: org.fhir:ucum.xmlpull.mxp1 (Java 9+), org.fhir:ucum.xmlpull.android (Native Android), org.fhir:ucum.xmlpull.xpp3 (old Java)");
     }
 }
