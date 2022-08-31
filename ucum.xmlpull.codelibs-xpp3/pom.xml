@@ -9,11 +9,11 @@
         <version>1.0.3</version>
     </parent>
 
-    <artifactId>ucum.xmlpull.mxp1</artifactId>
+    <artifactId>ucum.xmlpull.codelibs-xpp3</artifactId>
     <packaging>jar</packaging>
 
-    <name>ucum.xmlpull.mxp1</name>
-    <description>UCUM Service XML Pull Parser using MXP1</description>
+    <name>ucum.xmlpull.codelibs-xpp3</name>
+    <description>UCUM Service XML Pull Parser using Codelibs's XPP3 fork</description>
     <url>http://fhir.org</url>
 
     <dependencies>

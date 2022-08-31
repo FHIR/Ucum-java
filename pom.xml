@@ -20,7 +20,7 @@
         <module>ucum.xmlpull</module>
         <module>ucum.xmlpull.xpp3</module>
         <module>ucum.xmlpull.android</module>
-		<module>ucum.xmlpull.mxp1</module>
+		<module>ucum.xmlpull.codelibs-xpp3</module>
     </modules>
 
     <scm>
