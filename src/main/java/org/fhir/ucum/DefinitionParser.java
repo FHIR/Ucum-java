@@ -11,6 +11,7 @@
 
 package org.fhir.ucum;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -18,12 +19,18 @@ import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 /**
  * Parses the file ucum-essense.xml
@@ -34,152 +41,127 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 public class DefinitionParser {
 
-	public UcumModel parse(String filename) throws UcumException, XmlPullParserException, IOException, ParseException  {
+	public UcumModel parse(String filename) throws UcumException, IOException, ParseException, SAXException, ParserConfigurationException  {
 		return parse(new FileInputStream(new File(filename)));
 	}
 
-	public UcumModel parse(InputStream stream) throws XmlPullParserException, IOException, ParseException, UcumException  {
-		XmlPullParserFactory factory = XmlPullParserFactory.newInstance(
-				System.getProperty(XmlPullParserFactory.PROPERTY_NAME), null);
-		factory.setNamespaceAware(true);
-		XmlPullParser xpp = factory.newPullParser();
+	public UcumModel parse(InputStream stream) throws IOException, ParseException, UcumException, SAXException, ParserConfigurationException  {
+	  DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    factory.setNamespaceAware(false);
+    DocumentBuilder builder = factory.newDocumentBuilder();
+    Document doc = builder.parse(stream);
+    Element element = doc.getDocumentElement();
 
-		xpp.setInput(stream, null);
-
-		int eventType = xpp.next();
-		if (eventType != XmlPullParser.START_TAG)
-			throw new XmlPullParserException("Unable to process XML document");
-		if (!xpp.getName().equals("root")) 
-			throw new XmlPullParserException("Unable to process XML document: expected 'root' but found '"+xpp.getName()+"'");
+		if (!element.getNodeName().equals("root")) 
+			throw new UcumException("Unable to process XML document: expected 'root' but found '"+element.getNodeName()+"'");
 		DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd' 'HH:mm:ss' 'Z");
-		Date date = fmt.parse(xpp.getAttributeValue(null, "revision-date").substring(7, 32));        
-		UcumModel root = new UcumModel(xpp.getAttributeValue(null, "version"), xpp.getAttributeValue(null, "revision"), date);
-		xpp.next();
-		while (xpp.getEventType() != XmlPullParser.END_TAG) {
-			if (xpp.getEventType() == XmlPullParser.TEXT) {
-				if (Utilities.isWhitespace(xpp.getText()))
-					xpp.next();
-				else
-					throw new XmlPullParserException("Unexpected text "+xpp.getText());
-			} else if (xpp.getName().equals("prefix")) 
-				root.getPrefixes().add(parsePrefix(xpp));
-			else if (xpp.getName().equals("base-unit")) 
-				root.getBaseUnits().add(parseBaseUnit(xpp));
-			else if (xpp.getName().equals("unit")) 
-				root.getDefinedUnits().add(parseUnit(xpp));
+		Date date = fmt.parse(element.getAttribute("revision-date").substring(7, 32));        
+		UcumModel root = new UcumModel(element.getAttribute("version"), element.getAttribute("revision"), date);
+		Element focus = getFirstChild(element);
+		while (focus != null) {
+			if (focus.getNodeName().equals("prefix")) 
+				root.getPrefixes().add(parsePrefix(focus));
+			else if (focus.getNodeName().equals("base-unit")) 
+				root.getBaseUnits().add(parseBaseUnit(focus));
+			else if (focus.getNodeName().equals("unit")) 
+				root.getDefinedUnits().add(parseUnit(focus));
 			else 
-				throw new XmlPullParserException("unknown element name "+xpp.getName());
+				throw new UcumException("unknown element name "+focus.getNodeName());
+			focus = getNextSibling(focus);
 		}
 		return root;
 	}
 
-	private DefinedUnit parseUnit(XmlPullParser xpp) throws XmlPullParserException, IOException, UcumException  {
-		DefinedUnit unit = new DefinedUnit(xpp.getAttributeValue(null, "Code"), xpp.getAttributeValue(null, "CODE"));
-		unit.setMetric("yes".equals(xpp.getAttributeValue(null, "isMetric")));
-		unit.setSpecial("yes".equals(xpp.getAttributeValue(null, "isSpecial")));
-		unit.setClass_(xpp.getAttributeValue(null, "class"));
-		xpp.next();
-		skipWhitespace(xpp);
-		while (xpp.getEventType() == XmlPullParser.START_TAG && "name".equals(xpp.getName()))
-			unit.getNames().add(readElement(xpp, "name", "unit "+unit.getCode(), false));
-		if (xpp.getEventType() == XmlPullParser.START_TAG && "printSymbol".equals(xpp.getName()))
-			unit.setPrintSymbol(readElement(xpp, "printSymbol", "unit "+unit.getCode(), true));
-		unit.setProperty(readElement(xpp, "property", "unit "+unit.getCode(), false));
-		unit.setValue(parseValue(xpp, "unit "+unit.getCode()));
-		xpp.next();
-		skipWhitespace(xpp);
+	private DefinedUnit parseUnit(Element x) throws IOException, UcumException  {
+		DefinedUnit unit = new DefinedUnit(x.getAttribute("Code"), x.getAttribute("CODE"));
+		unit.setMetric("yes".equals(x.getAttribute("isMetric")));
+		unit.setSpecial("yes".equals(x.getAttribute("isSpecial")));
+		unit.setClass_(x.getAttribute("class"));
+		for (Element e : getNamedChildren(x, "name")) {
+		  unit.getNames().add(e.getTextContent());
+		}
+    unit.setPrintSymbol(getNamedChildText(x, "printSymbol"));
+    unit.setProperty(getNamedChildText(x, "property"));
+		unit.setValue(parseValue(getNamedChild(x, "value"), "unit "+unit.getCode()));
 		return unit;
 	}
 
-	private Value parseValue(XmlPullParser xpp, String context) throws XmlPullParserException, UcumException, IOException  {
-		checkAtElement(xpp, "value", context);
+	private Value parseValue(Element x, String context) throws UcumException, IOException  {
 		Decimal val = null;
-		if (xpp.getAttributeValue(null, "value") != null) 
+		if (x.getAttribute("value") != null) 
 			try {
-				if (xpp.getAttributeValue(null, "value").contains("."))
-					val = new Decimal(xpp.getAttributeValue(null, "value"), 24); // unlimited precision for these
+				if (x.getAttribute("value").contains("."))
+					val = new Decimal(x.getAttribute("value"), 24); // unlimited precision for these
 				else
-					val = new Decimal(xpp.getAttributeValue(null, "value"));
+					val = new Decimal(x.getAttribute("value"));
 			} catch (NumberFormatException e) {
-				throw new XmlPullParserException("Error reading "+context+": "+e.getMessage());
+				throw new UcumException("Error reading "+context+": "+e.getMessage());
 			}
-		Value value = new Value(xpp.getAttributeValue(null, "Unit"), xpp.getAttributeValue(null, "UNIT"), val);
-		value.setText(readElement(xpp, "value", context, true));
+		Value value = new Value(x.getAttribute("Unit"), x.getAttribute("UNIT"), val);
+		value.setText(x.getTextContent());
 		return value;
 	}
 
-	private BaseUnit parseBaseUnit(XmlPullParser xpp) throws XmlPullParserException, IOException {
-		BaseUnit base = new BaseUnit(xpp.getAttributeValue(null, "Code"), xpp.getAttributeValue(null, "CODE"));
-		base.setDim(xpp.getAttributeValue(null, "dim").charAt(0));
-		xpp.next();
-		skipWhitespace(xpp);
-		base.getNames().add(readElement(xpp, "name", "base-unit "+base.getCode(), false));
-		base.setPrintSymbol(readElement(xpp, "printSymbol", "base-unit "+base.getCode(), false));
-		base.setProperty(readElement(xpp, "property", "base-unit "+base.getCode(), false));
-		xpp.next();
-		skipWhitespace(xpp);
+	private BaseUnit parseBaseUnit(Element x) throws IOException {
+		BaseUnit base = new BaseUnit(x.getAttribute("Code"), x.getAttribute("CODE"));
+		base.setDim(x.getAttribute("dim").charAt(0));
+    for (Element e : getNamedChildren(x, "name")) {
+      base.getNames().add(e.getTextContent());
+    }
+    base.setPrintSymbol(getNamedChildText(x, "printSymbol"));
+    base.setProperty(getNamedChildText(x, "property"));    
 		return base;
 	}
 
-	private Prefix parsePrefix(XmlPullParser xpp) throws XmlPullParserException, IOException, UcumException  {
-		Prefix prefix = new Prefix(xpp.getAttributeValue(null, "Code"), xpp.getAttributeValue(null, "CODE"));
-		xpp.next();
-		skipWhitespace(xpp);
-		prefix.getNames().add(readElement(xpp, "name", "prefix "+prefix.getCode(), false));
-		prefix.setPrintSymbol(readElement(xpp, "printSymbol", "prefix "+prefix.getCode(), false));
-		checkAtElement(xpp, "value", "prefix "+prefix.getCode());
-		prefix.setValue(new Decimal(xpp.getAttributeValue(null, "value"), 24));
-		readElement(xpp, "value", "prefix "+prefix.getCode(), true);
-		xpp.next();
-		skipWhitespace(xpp);
+	private Prefix parsePrefix(Element x) throws IOException, UcumException  {
+		Prefix prefix = new Prefix(x.getAttribute("Code"), x.getAttribute("CODE"));
+    for (Element e : getNamedChildren(x, "name")) {
+      prefix.getNames().add(e.getTextContent());
+    }
+    prefix.setPrintSymbol(getNamedChildText(x, "printSymbol"));
+    Element value = getNamedChild(x, "value");
+		prefix.setValue(new Decimal(value.getAttribute("value"), 24));
 		return prefix;
 	}
 
-	private String readElement(XmlPullParser xpp, String name, String context, boolean complex) throws XmlPullParserException, IOException {
-		checkAtElement(xpp, name, context);
-		xpp.next();
-		skipWhitespace(xpp);
-		String val = null;
-		if (complex) {
-			val = readText(xpp);
-		} else if (xpp.getEventType() == XmlPullParser.TEXT) {
-			val = xpp.getText();
-			xpp.next();
-			skipWhitespace(xpp);
-		}
-		if (xpp.getEventType() != XmlPullParser.END_TAG) {
-			throw new XmlPullParserException("Unexpected content reading "+context);
-		}
-		xpp.next();
-		skipWhitespace(xpp);
-		return val;
-	}
+  public static Element getNamedChild(Element e, String name) {
+    Element c = getFirstChild(e);
+    while (c != null && !name.equals(c.getLocalName()) && !name.equals(c.getNodeName()))
+      c = getNextSibling(c);
+    return c;
+  }
+  
+  public static String getNamedChildText(Element element, String name) {
+    Element e = getNamedChild(element, name);
+    return e == null ? null : e.getTextContent();
+  }
+  
+  public static Element getFirstChild(Element e) {
+    if (e == null)
+      return null;
+    Node n = e.getFirstChild();
+    while (n != null && n.getNodeType() != Node.ELEMENT_NODE)
+      n = n.getNextSibling();
+    return (Element) n;
+  }
 
-	private String readText(XmlPullParser xpp) throws XmlPullParserException, IOException {
-		StringBuilder bldr = new StringBuilder();
-		while (xpp.getEventType() != XmlPullParser.END_TAG) {
-			if (xpp.getEventType() == XmlPullParser.TEXT) {
-				bldr.append(xpp.getText());
-				xpp.next();
-			} else {
-				xpp.next();
-				bldr.append(readText(xpp));
-				xpp.next();
-				skipWhitespace(xpp);
-			}
-		}
-		return bldr.toString();
-	}
 
-	private void skipWhitespace(XmlPullParser xpp) throws XmlPullParserException, IOException {
-		while (xpp.getEventType() == XmlPullParser.TEXT && Utilities.isWhitespace(xpp.getText())) 
-			xpp.next();		
-	}
+  public static Element getNextSibling(Element e) {
+    Node n = e.getNextSibling();
+    while (n != null && n.getNodeType() != Node.ELEMENT_NODE)
+      n = n.getNextSibling();
+    return (Element) n;
+  }
 
-	private void checkAtElement(XmlPullParser xpp, String name, String context) throws XmlPullParserException {
-		if (xpp.getEventType() != XmlPullParser.START_TAG)
-			throw new XmlPullParserException("Unexpected state looking for "+name+": at "+Integer.toString(xpp.getEventType())+"  reading "+context);
-		if (!xpp.getName().equals(name))
-			throw new XmlPullParserException("Unexpected element looking for "+name+": found "+xpp.getName()+"  reading "+context);		
-	}
+
+  public static List<Element> getNamedChildren(Element e, String name) {
+    List<Element> res = new ArrayList<Element>();
+    Element c = getFirstChild(e);
+    while (c != null) {
+      if (name.equals(c.getLocalName()) || name.equals(c.getNodeName()) )
+        res.add(c);
+      c = getNextSibling(c);
+    }
+    return res;
+  }
 }
