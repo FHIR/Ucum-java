@@ -9,7 +9,7 @@
  *    Kestral Computing P/L - initial implementation
  *******************************************************************************/
 
-package org.fhir.ucum;
+package org.fhir.ucum.definitions;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -27,6 +27,13 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.fhir.ucum.BaseUnit;
+import org.fhir.ucum.Decimal;
+import org.fhir.ucum.DefinedUnit;
+import org.fhir.ucum.Prefix;
+import org.fhir.ucum.UcumException;
+import org.fhir.ucum.UcumModel;
+import org.fhir.ucum.Value;
 import org.fhir.ucum.utils.XmlUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -40,34 +47,42 @@ import org.xml.sax.SAXException;
  *
  */
 
-public class DefinitionParser {
+public class XmlDefinitionsParser implements DefinitionsProvider {
 
-	public UcumModel parse(String filename) throws UcumException, IOException, ParseException, SAXException, ParserConfigurationException  {
-		return parse(new FileInputStream(new File(filename)));
+	public UcumModel parse(String filename) throws UcumException  {
+	  try {
+	    return parse(new FileInputStream(new File(filename)));
+    } catch (Exception e) {
+      throw new UcumException(e);
+    } 
 	}
 
-	public UcumModel parse(InputStream stream) throws IOException, ParseException, UcumException, SAXException, ParserConfigurationException  {
-	  Document doc = XmlUtils.parseDOM(stream);
-    Element element = doc.getDocumentElement();
+	public UcumModel parse(InputStream stream) throws UcumException {
+	  try {
+	    Document doc = XmlUtils.parseDOM(stream);
+	    Element element = doc.getDocumentElement();
 
-		if (!element.getNodeName().equals("root")) 
-			throw new UcumException("Unable to process XML document: expected 'root' but found '"+element.getNodeName()+"'");
-		DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd' 'HH:mm:ss' 'Z");
-		Date date = fmt.parse(element.getAttribute("revision-date").substring(7, 32));        
-		UcumModel root = new UcumModel(element.getAttribute("version"), element.getAttribute("revision"), date);
-		Element focus = XmlUtils.getFirstChild(element);
-		while (focus != null) {
-			if (focus.getNodeName().equals("prefix")) 
-				root.getPrefixes().add(parsePrefix(focus));
-			else if (focus.getNodeName().equals("base-unit")) 
-				root.getBaseUnits().add(parseBaseUnit(focus));
-			else if (focus.getNodeName().equals("unit")) 
-				root.getDefinedUnits().add(parseUnit(focus));
-			else 
-				throw new UcumException("unknown element name "+focus.getNodeName());
-			focus = XmlUtils.getNextSibling(focus);
-		}
-		return root;
+	    if (!element.getNodeName().equals("root")) 
+	      throw new UcumException("Unable to process XML document: expected 'root' but found '"+element.getNodeName()+"'");
+	    DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd' 'HH:mm:ss' 'Z");
+	    Date date = fmt.parse(element.getAttribute("revision-date").substring(7, 32));        
+	    UcumModel root = new UcumModel(element.getAttribute("version"), element.getAttribute("revision"), date);
+	    Element focus = XmlUtils.getFirstChild(element);
+	    while (focus != null) {
+	      if (focus.getNodeName().equals("prefix")) 
+	        root.getPrefixes().add(parsePrefix(focus));
+	      else if (focus.getNodeName().equals("base-unit")) 
+	        root.getBaseUnits().add(parseBaseUnit(focus));
+	      else if (focus.getNodeName().equals("unit")) 
+	        root.getDefinedUnits().add(parseUnit(focus));
+	      else 
+	        throw new UcumException("unknown element name "+focus.getNodeName());
+	      focus = XmlUtils.getNextSibling(focus);
+	    }
+	    return root;
+	  } catch (Exception e) {
+	    throw new UcumException(e);
+	  }
 	}
 
 
