@@ -37,16 +37,6 @@
 
     <dependencies>
 
-        <dependency>
-            <groupId>xpp3</groupId>
-            <artifactId>xpp3</artifactId>
-            <version>1.1.4c</version>
-        </dependency>
-        <dependency>
-            <groupId>xpp3</groupId>
-            <artifactId>xpp3_xpath</artifactId>
-            <version>1.1.4c</version>
-        </dependency>
 
         <dependency>
             <groupId>junit</groupId>

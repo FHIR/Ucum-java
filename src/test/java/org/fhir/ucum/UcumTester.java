@@ -17,306 +17,221 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.fhir.ucum.utils.XmlUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+
 
 public class UcumTester {
 
-    @Test
-    public void testSuite() throws XmlPullParserException, IOException, UcumException {
-       UcumTester worker = new UcumTester();
-        worker.setDefinitions("src/main/resources/ucum-essence.xml");
-        worker.setTests("src/test/resources/UcumFunctionalTests.xml");
-        System.out.println("Defitions: " + worker.getDefinitions() + "\n" + "Tests: " + worker.getTests());
-        worker.execute();
-
-    }
-    
-    
-    private String definitions;
-    private String tests;
-    public String getDefinitions() {
-        return definitions;
-    }
-    public void setDefinitions(String definitions) {
-        this.definitions = definitions;
-    }
-    public String getTests() {
-        return tests;
-    }
-    public void setTests(String tests) {
-        this.tests = tests;
-    }
-
-
-    private UcumService ucumSvc;
-    private int errCount;
-
-    private void execute() throws XmlPullParserException, IOException, UcumException  {
-        ucumSvc = new UcumEssenceService(definitions);
-        errCount = 0;
-        XmlPullParserFactory factory = XmlPullParserFactory.newInstance(System.getProperty(XmlPullParserFactory.PROPERTY_NAME), null);
-        factory.setNamespaceAware(true);
-        XmlPullParser xpp = factory.newPullParser();
-
-//        InputStream is = this.getClass().getResourceAsStream(tests);
-//        xpp.setInput(is, null);
-        xpp.setInput(new FileInputStream(tests), null);
-
-        int eventType = xpp.next();
-        if (eventType != XmlPullParser.START_TAG)
-            throw new XmlPullParserException("Unable to process XML document");
-        if (!xpp.getName().equals("ucumTests"))
-            throw new XmlPullParserException("Unable to process XML document: expected 'ucumTests' but found '"+xpp.getName()+"'");
-
-        xpp.next();
-        while (xpp.getEventType() != XmlPullParser.END_TAG) {
-            if (xpp.getEventType() == XmlPullParser.TEXT) {
-                if (Utilities.isWhitespace(xpp.getText()))
-                    xpp.next();
-                else
-                    throw new XmlPullParserException("Unexpected text "+xpp.getText());
-            } else if (xpp.getName().equals("history"))
-                skipElement(xpp);
-            else if (xpp.getName().equals("validation"))
-                runValidationTests(xpp);
-            else if (xpp.getName().equals("displayNameGeneration"))
-                runDisplayNameGeneration(xpp);
-            else if (xpp.getName().equals("conversion"))
-                runConversion(xpp);
-            else if (xpp.getName().equals("multiplication"))
-              runMultiplication(xpp);
-            else if (xpp.getName().equals("division"))
-              runDivision(xpp);
-            else
-                throw new XmlPullParserException("unknown element name "+xpp.getName());
-        }
-        xpp.next();
-        if (errCount > 0)
-            System.err.println(Integer.toString(errCount)+" errors");
-    }
-
-    private void runMultiplication(XmlPullParser xpp) throws XmlPullParserException, IOException, UcumException  {
-        xpp.next();
-        while (xpp.getEventType() != XmlPullParser.END_TAG) {
-            if (xpp.getEventType() == XmlPullParser.TEXT) {
-                if (Utilities.isWhitespace(xpp.getText()))
-                    xpp.next();
-                else
-                    throw new XmlPullParserException("Unexpected text "+xpp.getText());
-            } else if (xpp.getName().equals("case"))
-                runMultiplicationCase(xpp);
-            else
-                throw new XmlPullParserException("unknown element name "+xpp.getName());
-        }
-        xpp.next();
-    }
-
-    private void runDivision(XmlPullParser xpp) throws XmlPullParserException, IOException, UcumException  {
-      xpp.next();
-      while (xpp.getEventType() != XmlPullParser.END_TAG) {
-          if (xpp.getEventType() == XmlPullParser.TEXT) {
-              if (Utilities.isWhitespace(xpp.getText()))
-                  xpp.next();
-              else
-                  throw new XmlPullParserException("Unexpected text "+xpp.getText());
-          } else if (xpp.getName().equals("case"))
-              runDivisionCase(xpp);
-          else
-              throw new XmlPullParserException("unknown element name "+xpp.getName());
-      }
-      xpp.next();
-  }
-
-    private void runMultiplicationCase(XmlPullParser xpp) throws XmlPullParserException, IOException, UcumException  {
-
-        String id = xpp.getAttributeValue(null, "id");
-        String v1 = xpp.getAttributeValue(null, "v1");
-        String u1 = xpp.getAttributeValue(null, "u1");
-        String v2 = xpp.getAttributeValue(null, "v2");
-        String u2 = xpp.getAttributeValue(null, "u2");
-        String vRes = xpp.getAttributeValue(null, "vRes");
-        String uRes = xpp.getAttributeValue(null, "uRes");
-
-        Pair o1 = new Pair(new Decimal(v1), u1);
-        Pair o2 = new Pair(new Decimal(v2), u2);
-        Pair o3 = ucumSvc.multiply(o1, o2);
-
-        debug("Multiplication Test "+id+": the value '"+v1+" "+u1+"' * '"+v2+" "+u2+"' ==> "+o3.getValue().toString()+" "+o3.getCode());
-
-        // if (!res.toPlainString().equals(outcome)) { - that assumes that we can get the precision right, which we can't
-        if (o3.getValue().comparesTo(new Decimal(vRes)) != 0 || !o3.getCode().equals(uRes)) {
-            errCount++;
-            System.err.println("Test "+id+": The value '"+vRes+" "+uRes+"' was expected, but the result was "+o3.getValue().toString()+" "+o3.getCode());
-        }
-        while (xpp.getEventType() != XmlPullParser.END_TAG)
-            xpp.next();
-        xpp.next();
-
-    }
-
-    private void runDivisionCase(XmlPullParser xpp) throws XmlPullParserException, IOException, UcumException  {
-
-      String id = xpp.getAttributeValue(null, "id");
-      String v1 = xpp.getAttributeValue(null, "v1");
-      String u1 = xpp.getAttributeValue(null, "u1");
-      String v2 = xpp.getAttributeValue(null, "v2");
-      String u2 = xpp.getAttributeValue(null, "u2");
-      String vRes = xpp.getAttributeValue(null, "vRes");
-      String uRes = xpp.getAttributeValue(null, "uRes");
-
-      Pair o1 = new Pair(new Decimal(v1), u1);
-      Pair o2 = new Pair(new Decimal(v2), u2);
-      Pair o3 = ucumSvc.divideBy(o1, o2);
-
-      debug("Division Test "+id+": the value '"+v1+" "+u1+"' * '"+v2+" "+u2+"' ==> "+o3.getValue().toString()+" "+o3.getCode());
-
-      // if (!res.toPlainString().equals(outcome)) { - that assumes that we can get the precision right, which we can't
-      if (o3.getValue().comparesTo(new Decimal(vRes)) != 0 || !o3.getCode().equals(uRes)) {
-          errCount++;
-          System.err.println("Test "+id+": The value '"+vRes+" "+uRes+"' was expected, but the result was "+o3.getValue().toString()+" "+o3.getCode());
-      }
-      while (xpp.getEventType() != XmlPullParser.END_TAG)
-          xpp.next();
-      xpp.next();
+  @Test
+  public void testSuite() throws IOException, UcumException, ParserConfigurationException, SAXException {
+    UcumTester worker = new UcumTester();
+    worker.setDefinitions("src/main/resources/ucum-essence.xml");
+    worker.setTests("src/test/resources/UcumFunctionalTests.xml");
+    System.out.println("Defitions: " + worker.getDefinitions() + "\n" + "Tests: " + worker.getTests());
+    worker.execute();
 
   }
 
 
-    private void runConversion(XmlPullParser xpp) throws XmlPullParserException, IOException, UcumException  {
-        xpp.next();
-        while (xpp.getEventType() != XmlPullParser.END_TAG) {
-            if (xpp.getEventType() == XmlPullParser.TEXT) {
-                if (Utilities.isWhitespace(xpp.getText()))
-                    xpp.next();
-                else
-                    throw new XmlPullParserException("Unexpected text "+xpp.getText());
-            } else if (xpp.getName().equals("case"))
-                runConversionCase(xpp);
-            else
-                throw new XmlPullParserException("unknown element name "+xpp.getName());
-        }
-        xpp.next();
+  private String definitions;
+  private String tests;
+  public String getDefinitions() {
+    return definitions;
+  }
+  public void setDefinitions(String definitions) {
+    this.definitions = definitions;
+  }
+  public String getTests() {
+    return tests;
+  }
+  public void setTests(String tests) {
+    this.tests = tests;
+  }
+
+
+  private UcumService ucumSvc;
+  private int errCount;
+
+  private void execute() throws IOException, UcumException, ParserConfigurationException, SAXException  {
+    ucumSvc = new UcumEssenceService(definitions);
+    errCount = 0;
+    Document doc = XmlUtils.parseDOM(new FileInputStream(tests));
+    Element element = doc.getDocumentElement();
+
+    if (!element.getNodeName().equals("ucumTests"))
+      throw new UcumException("Unable to process XML document: expected 'ucumTests' but found '"+element.getNodeName()+"'");
+
+    Element focus = XmlUtils.getFirstChild(element);
+    while (focus != null) {
+      if (focus.getNodeName().equals("history"))
+        ;
+      else if (focus.getNodeName().equals("validation"))
+        runValidationTests(focus);
+      else if (focus.getNodeName().equals("displayNameGeneration"))
+        runDisplayNameGeneration(focus);
+      else if (focus.getNodeName().equals("conversion"))
+        runConversion(focus);
+      else if (focus.getNodeName().equals("multiplication"))
+        runMultiplication(focus);
+      else if (focus.getNodeName().equals("division"))
+        runDivision(focus);
+      else
+        throw new UcumException("unknown element name "+focus.getNodeName());
+      focus = XmlUtils.getNextSibling(focus);
+    }
+    if (errCount > 0)
+      System.err.println(Integer.toString(errCount)+" errors");
+  }
+
+  private void runMultiplication(Element x) throws IOException, UcumException  {
+    for (Element e : XmlUtils.getNamedChildren(x, "case")) {
+      runMultiplicationCase(e);      
+    }
+  }
+
+  private void runDivision(Element x) throws IOException, UcumException  {
+    for (Element e : XmlUtils.getNamedChildren(x, "case")) {
+      runDivisionCase(e);      
+    }
+  }
+
+  private void runMultiplicationCase(Element x) throws IOException, UcumException  {
+
+    String id = x.getAttribute("id");
+    String v1 = x.getAttribute("v1");
+    String u1 = x.getAttribute("u1");
+    String v2 = x.getAttribute("v2");
+    String u2 = x.getAttribute("u2");
+    String vRes = x.getAttribute("vRes");
+    String uRes = x.getAttribute("uRes");
+
+    Pair o1 = new Pair(new Decimal(v1), u1);
+    Pair o2 = new Pair(new Decimal(v2), u2);
+    Pair o3 = ucumSvc.multiply(o1, o2);
+
+    debug("Multiplication Test "+id+": the value '"+v1+" "+u1+"' * '"+v2+" "+u2+"' ==> "+o3.getValue().toString()+" "+o3.getCode());
+
+    // if (!res.toPlainString().equals(outcome)) { - that assumes that we can get the precision right, which we can't
+    if (o3.getValue().comparesTo(new Decimal(vRes)) != 0 || !o3.getCode().equals(uRes)) {
+      errCount++;
+      System.err.println("Test "+id+": The value '"+vRes+" "+uRes+"' was expected, but the result was "+o3.getValue().toString()+" "+o3.getCode());
     }
 
-    private void runConversionCase(XmlPullParser xpp) throws XmlPullParserException, IOException, UcumException  {
+  }
 
-        String id = xpp.getAttributeValue(null, "id");
-        String value = xpp.getAttributeValue(null, "value");
-        String srcUnit = xpp.getAttributeValue(null, "srcUnit");
-        String dstUnit = xpp.getAttributeValue(null, "dstUnit");
-        String outcome = xpp.getAttributeValue(null, "outcome");
-        System.out.println("case "+id+": "+value+" "+srcUnit+" -> "+outcome+" "+dstUnit);
-        Decimal res = ucumSvc.convert(new Decimal(value), srcUnit, dstUnit);
-        debug("Convert Test "+id+": the value '"+value+" "+srcUnit+"' ==> "+res.toString()+" "+dstUnit);
+  private void runDivisionCase(Element x) throws IOException, UcumException  {
 
-        // if (!res.toPlainString().equals(outcome)) { - that assumes that we can get the precision right, which we can't
-        if (res.comparesTo(new Decimal(outcome)) != 0) {
-            errCount++;
-            System.err.println("Test "+id+": The value '"+outcome+"' was expected the result was "+res.toString());
-        }
-        while (xpp.getEventType() != XmlPullParser.END_TAG)
-            xpp.next();
-        xpp.next();
+    String id = x.getAttribute("id");
+    String v1 = x.getAttribute("v1");
+    String u1 = x.getAttribute("u1");
+    String v2 = x.getAttribute("v2");
+    String u2 = x.getAttribute("u2");
+    String vRes = x.getAttribute("vRes");
+    String uRes = x.getAttribute("uRes");
+
+    Pair o1 = new Pair(new Decimal(v1), u1);
+    Pair o2 = new Pair(new Decimal(v2), u2);
+    Pair o3 = ucumSvc.divideBy(o1, o2);
+
+    debug("Division Test "+id+": the value '"+v1+" "+u1+"' * '"+v2+" "+u2+"' ==> "+o3.getValue().toString()+" "+o3.getCode());
+
+    // if (!res.toPlainString().equals(outcome)) { - that assumes that we can get the precision right, which we can't
+    if (o3.getValue().comparesTo(new Decimal(vRes)) != 0 || !o3.getCode().equals(uRes)) {
+      errCount++;
+      System.err.println("Test "+id+": The value '"+vRes+" "+uRes+"' was expected, but the result was "+o3.getValue().toString()+" "+o3.getCode());
     }
 
+  }
 
-    private void debug(String string) {
-       // System.out.println(string);
 
+  private void runConversion(Element x) throws IOException, UcumException  {
+    for (Element e : XmlUtils.getNamedChildren(x, "case")) {
+      runConversionCase(e);      
     }
-    private void runDisplayNameGeneration(XmlPullParser xpp) throws XmlPullParserException, IOException, UcumException  {
-        xpp.next();
-        while (xpp.getEventType() != XmlPullParser.END_TAG) {
-            if (xpp.getEventType() == XmlPullParser.TEXT) {
-                if (Utilities.isWhitespace(xpp.getText()))
-                    xpp.next();
-                else
-                    throw new XmlPullParserException("Unexpected text "+xpp.getText());
-            } else if (xpp.getName().equals("case"))
-                runDisplayNameGenerationCase(xpp);
-            else
-                throw new XmlPullParserException("unknown element name "+xpp.getName());
-        }
-        xpp.next();
+  }
+
+  private void runConversionCase(Element x) throws IOException, UcumException  {
+
+    String id = x.getAttribute("id");
+    String value = x.getAttribute("value");
+    String srcUnit = x.getAttribute("srcUnit");
+    String dstUnit = x.getAttribute("dstUnit");
+    String outcome = x.getAttribute("outcome");
+    System.out.println("case "+id+": "+value+" "+srcUnit+" -> "+outcome+" "+dstUnit);
+    Decimal res = ucumSvc.convert(new Decimal(value), srcUnit, dstUnit);
+    debug("Convert Test "+id+": the value '"+value+" "+srcUnit+"' ==> "+res.toString()+" "+dstUnit);
+
+    // if (!res.toPlainString().equals(outcome)) { - that assumes that we can get the precision right, which we can't
+    if (res.comparesTo(new Decimal(outcome)) != 0) {
+      errCount++;
+      System.err.println("Test "+id+": The value '"+outcome+"' was expected the result was "+res.toString());
     }
+  }
 
-    private void runDisplayNameGenerationCase(XmlPullParser xpp) throws XmlPullParserException, IOException, UcumException  {
-        String id = xpp.getAttributeValue(null, "id");
-        String unit = xpp.getAttributeValue(null, "unit");
-        String display = xpp.getAttributeValue(null, "display");
 
-        String res = ucumSvc.analyse(unit);
-        debug("Analyse Test "+id+": the unit '"+unit+"' ==> "+res);
+  private void debug(String string) {
+    // System.out.println(string);
 
-        if (!res.equals(display)) {
-            errCount++;
-            System.err.println("Test "+id+": The unit '"+unit+"' was expected to be displayed as '"+display+"', but was displayed as "+res);
-        }
-        while (xpp.getEventType() != XmlPullParser.END_TAG)
-            xpp.next();
-        xpp.next();
+  }
+  private void runDisplayNameGeneration(Element x) throws IOException, UcumException  {
+    for (Element e : XmlUtils.getNamedChildren(x, "case")) {
+      runDisplayNameGenerationCase(e);      
     }
+  }
 
-    private void runValidationTests(XmlPullParser xpp) throws XmlPullParserException, IOException  {
-        xpp.next();
-        while (xpp.getEventType() != XmlPullParser.END_TAG) {
-            if (xpp.getEventType() == XmlPullParser.TEXT) {
-                if (Utilities.isWhitespace(xpp.getText()))
-                    xpp.next();
-                else
-                    throw new XmlPullParserException("Unexpected text "+xpp.getText());
-            } else if (xpp.getName().equals("case"))
-                runValidationCase(xpp);
-            else
-                throw new XmlPullParserException("unknown element name "+xpp.getName());
-        }
-        xpp.next();
+  private void runDisplayNameGenerationCase(Element x) throws IOException, UcumException  {
+    String id = x.getAttribute("id");
+    String unit = x.getAttribute("unit");
+    String display = x.getAttribute("display");
+
+    String res = ucumSvc.analyse(unit);
+    debug("Analyse Test "+id+": the unit '"+unit+"' ==> "+res);
+
+    if (!res.equals(display)) {
+      errCount++;
+      System.err.println("Test "+id+": The unit '"+unit+"' was expected to be displayed as '"+display+"', but was displayed as "+res);
     }
+  }
 
-    private void runValidationCase(XmlPullParser xpp) throws XmlPullParserException, IOException  {
-        String id = xpp.getAttributeValue(null, "id");
-        String unit = xpp.getAttributeValue(null, "unit");
-        boolean valid = "true".equals(xpp.getAttributeValue(null, "valid"));
-        String reason = xpp.getAttributeValue(null, "reason");
-
-        String res = ucumSvc.validate(unit);
-        boolean result = res == null;
-        if (result)
-            debug("Validation Test "+id+": the unit '"+unit+"' is valid");
-        else
-            debug("Validation Test "+id+": the unit '"+unit+"' is not valid because "+res);
-
-        if (valid != result) {
-            errCount++;
-            if (valid) {
-              Assert.assertTrue("Unit "+unit+" was expected to be valid, but was invalid ("+id+")", false);
-              System.err.println("Test "+id+": The unit '"+unit+"' was expected to be valid, but wasn't accepted");
-            } else {
-              Assert.assertTrue("Unit "+unit+" was expected to be invalid, but was valid ("+id+")", false);
-              System.err.println("Test "+id+": The unit '"+unit+"' was expected to be invalid because '"+reason+"', but was accepted");
-            }
-        }
-        while (xpp.getEventType() != XmlPullParser.END_TAG)
-            xpp.next();
-        xpp.next();
+  private void runValidationTests(Element x) throws IOException  {
+    for (Element e : XmlUtils.getNamedChildren(x, "case")) {
+      runValidationCase(e);      
     }
+  }
 
-    private void skipElement(XmlPullParser xpp) throws XmlPullParserException, IOException  {
-        xpp.next();
-        while (xpp.getEventType() != XmlPullParser.END_TAG) {
-            if (xpp.getEventType() == XmlPullParser.START_TAG)
-                skipElement(xpp);
-            else
-                xpp.next();
-        }
-        xpp.next();
+  private void runValidationCase(Element x) throws IOException  {
+    String id = x.getAttribute("id");
+    String unit = x.getAttribute("unit");
+    boolean valid = "true".equals(x.getAttribute("valid"));
+    String reason = x.getAttribute("reason");
+
+    String res = ucumSvc.validate(unit);
+    boolean result = res == null;
+    if (result)
+      debug("Validation Test "+id+": the unit '"+unit+"' is valid");
+    else
+      debug("Validation Test "+id+": the unit '"+unit+"' is not valid because "+res);
+
+    if (valid != result) {
+      errCount++;
+      if (valid) {
+        Assert.assertTrue("Unit "+unit+" was expected to be valid, but was invalid ("+id+")", false);
+        System.err.println("Test "+id+": The unit '"+unit+"' was expected to be valid, but wasn't accepted");
+      } else {
+        Assert.assertTrue("Unit "+unit+" was expected to be invalid, but was valid ("+id+")", false);
+        System.err.println("Test "+id+": The unit '"+unit+"' was expected to be invalid because '"+reason+"', but was accepted");
+      }
     }
+  }
 
 
 }
