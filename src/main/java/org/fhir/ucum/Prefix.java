@@ -13,8 +13,10 @@ package org.fhir.ucum;
 
 
 public class Prefix extends Concept {
-	
-	/**
+
+    private static final long serialVersionUID = 7489713906606871520L;
+    
+    /**
 	 * value for the prefix.  
 	 */
 	private Decimal value; // 1^-24 through to 1^24

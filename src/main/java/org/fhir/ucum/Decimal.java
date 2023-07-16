@@ -12,6 +12,8 @@ package org.fhir.ucum;
  *    Health Intersections P/L - port to Java
  *******************************************************************************/
 
+import java.io.Serializable;
+
 /**
     Precision aware Decimal implementation. Any size number with any number of significant digits is supported.
 
@@ -40,9 +42,11 @@ package org.fhir.ucum;
  * @author Grahame
  *
  */
-public class Decimal {
+public class Decimal implements Serializable {
 
-	private int precision;
+    private static final long serialVersionUID = 8336134891785919162L;
+    
+    private int precision;
 	private boolean scientific;
 	private boolean negative;
 	private String digits;

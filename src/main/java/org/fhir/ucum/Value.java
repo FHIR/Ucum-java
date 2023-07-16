@@ -11,9 +11,13 @@
 
 package org.fhir.ucum;
 
-public class Value {
+import java.io.Serializable;
 
-	private String unit;
+public class Value implements Serializable {
+
+    private static final long serialVersionUID = 6179476364128662688L;
+    
+    private String unit;
 	
 	private String unitUC;
 	

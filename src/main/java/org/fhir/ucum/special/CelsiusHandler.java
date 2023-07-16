@@ -15,7 +15,9 @@ import org.fhir.ucum.Decimal;
 
 public class CelsiusHandler extends SpecialUnitHandler {
 
-	@Override
+    private static final long serialVersionUID = 8622694656482031531L;
+
+    @Override
 	public String getCode() {
 		return "Cel";
 	}

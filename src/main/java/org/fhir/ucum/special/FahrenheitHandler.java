@@ -15,7 +15,9 @@ import org.fhir.ucum.Decimal;
 
 public class FahrenheitHandler extends SpecialUnitHandler {
 
-	@Override
+    private static final long serialVersionUID = 5300754465863682114L;
+
+    @Override
 	public String getCode() {
 		return "[degF]";
 	}

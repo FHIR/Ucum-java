@@ -11,12 +11,15 @@
 
 package org.fhir.ucum;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Concept {
+public class Concept implements Serializable {
 
-	private ConceptKind kind;
+    private static final long serialVersionUID = 4762687914157070849L;
+    
+    private ConceptKind kind;
 	/**
 	 * case sensitive code for this concept
 	 */

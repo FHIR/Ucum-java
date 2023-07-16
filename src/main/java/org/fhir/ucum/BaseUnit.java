@@ -13,8 +13,9 @@ package org.fhir.ucum;
 
 public class BaseUnit extends Unit {
 
-
-	/**
+    private static final long serialVersionUID = 2694895021527732848L;
+    
+    /**
 	 * abbrevation for property
 	 */
 	private char dim;

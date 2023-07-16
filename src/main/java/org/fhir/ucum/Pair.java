@@ -11,9 +11,13 @@
 
 package org.fhir.ucum;
 
-public class Pair {
+import java.io.Serializable;
 
-	private Decimal value;
+public class Pair implements Serializable {
+
+    private static final long serialVersionUID = -1201864084549128274L;
+    
+    private Decimal value;
 	private String code;
 	
 	

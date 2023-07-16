@@ -11,14 +11,17 @@
 
 package org.fhir.ucum.special;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.fhir.ucum.Decimal;
 
-public class Registry {
+public class Registry implements Serializable {
 
-	Map<String, SpecialUnitHandler> handlers = new HashMap<String, SpecialUnitHandler>();
+    private static final long serialVersionUID = 3809426006717720452L;
+    
+    Map<String, SpecialUnitHandler> handlers = new HashMap<String, SpecialUnitHandler>();
 
 	public Registry() {
 		super();
