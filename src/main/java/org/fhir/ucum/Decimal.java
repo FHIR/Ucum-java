@@ -820,4 +820,38 @@ public class Decimal {
   public int hashCode() {
     return asDecimal().hashCode();
   }
+
+  public void limitPrecisionTo(Decimal other) {
+    // precision can't be greater than other 
+    if (precision > other.precision) {
+      precision = other.precision;
+    }
+  }
+
+  public void checkForCouldBeWholeNumber() {
+    // whole numbers are tricky - they have implied infinite precision, but we need to check for digit errors in the last couple of digits
+    // it's a whole number if all but the last one or two digits after the decimal place is 9 or 0 and the precision is >17 (arbitrary but enough)
+    if (precision > 17 && digits.length() > 3) {
+      int i = digits.length()-2;
+      char ch = digits.charAt(i); // second last character
+      if (ch == '9') {
+        while (i > 0 && digits.charAt(i-1) == '9') {
+          i--;
+        }      
+        if (i > 0 && i < digits.length() - 3) {
+          digits = digits.substring(0, i-1)+Character.toString((char) (digits.charAt(i-1) + 1));
+          precision = digits.length();
+        }
+      } else if (ch == '0') {
+        while (i > 0 && digits.charAt(i-1) == '0') {
+          i--;
+        }      
+        if (i > 0 && i < digits.length() - 3) {
+          digits = digits.substring(0, i);
+          precision = digits.length();
+        }
+      }
+    }
+  }
+  
 }
