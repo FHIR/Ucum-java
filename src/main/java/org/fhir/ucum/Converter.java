@@ -127,7 +127,7 @@ public class Converter {
 	}
 
   private Canonical normalise(String indent, Symbol sym) throws UcumException  {
-  	Canonical result = new Canonical(new Decimal(1));
+    Canonical result = new Canonical(new Decimal("1.000000000000000000000000000000"));
   	
   	if (sym.getUnit() instanceof BaseUnit) {
   		result.getUnits().add(new CanonicalUnit((BaseUnit) sym.getUnit(), sym.getExponent()));
@@ -157,17 +157,25 @@ public class Converter {
 
 	private Canonical expandDefinedUnit(String indent, DefinedUnit unit) throws UcumException  {
 		String u = unit.getValue().getUnit();
+		Decimal v = unit.getValue().getValue();
+
 		if (unit.isSpecial()) {
 			if (!handlers.exists(unit.getCode())) 
 				throw new UcumException("Not handled yet (special unit)");
-			else 
+			else {
 				u = handlers.get(unit.getCode()).getUnits();
+				v = handlers.get(unit.getCode()).getValue();
+				if (handlers.get(unit.getCode()).hasOffset()) {
+				  // the problem here is that supporting this requires a total rework of the architecture, because the actual value isn't available here (and don't know whether it's needed to do offset either)
+				  throw new UcumException("Not handled yet (special unit with offset from 0 at intersect)");
+				}
+			}
 		}
 			
 		Term t = new ExpressionParser(model).parse(u);
 		debug(indent, "now handle", t);
 		Canonical result = normalise(indent+"  ", t);
-		result.multiplyValue(unit.getValue().getValue());
+		result.multiplyValue(v);
 		return result;
   }
 

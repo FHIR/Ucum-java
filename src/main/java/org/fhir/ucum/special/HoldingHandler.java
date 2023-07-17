@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.fhir.ucum.special;
 
 import org.fhir.ucum.Decimal;
+import org.fhir.ucum.UcumException;
 
 /**
  * If you want to actually use one of these units, then you'll
@@ -84,4 +85,16 @@ public class HoldingHandler extends SpecialUnitHandler {
 		return value;
 	}
 
+  /* (non-Javadoc)
+   * @see org.eclipse.ohf.ucum.special.SpecialUnitHandler#getOffset()
+   */
+  @Override
+  public Decimal getOffset() throws UcumException {   
+    return new Decimal("0", 24);
+  }
+
+  @Override
+  public boolean hasOffset() {
+    return false;
+  }
 }
