@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.fhir.ucum.special;
 
 import org.fhir.ucum.Decimal;
+import org.fhir.ucum.UcumException;
 
 public class CelsiusHandler extends SpecialUnitHandler {
 
@@ -52,5 +53,18 @@ public class CelsiusHandler extends SpecialUnitHandler {
 		return Decimal.one();
 	}
 
-	
+
+
+  /* (non-Javadoc)
+   * @see org.eclipse.ohf.ucum.special.SpecialUnitHandler#getOffset()
+   */
+  @Override
+  public Decimal getOffset() throws UcumException {   
+    return new Decimal("-273.15", 24);
+  }
+
+  @Override
+  public boolean hasOffset() {
+    return true;
+  }
 }

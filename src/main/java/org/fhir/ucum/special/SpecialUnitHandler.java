@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.fhir.ucum.special;
 
 import org.fhir.ucum.Decimal;
+import org.fhir.ucum.UcumException;
 
 public abstract class SpecialUnitHandler {
 
@@ -57,4 +58,20 @@ public abstract class SpecialUnitHandler {
 	 */
 	public abstract Decimal getValue();
 	
+
+  /**
+   * return true if the conversion offset value != 0
+   * 
+   * @return
+   */
+  public abstract boolean hasOffset();
+
+  /**
+   * get the conversion offset value
+   * 
+   * @return
+   * @throws UcumException 
+   */
+  public abstract Decimal getOffset() throws UcumException;
+  
 }
