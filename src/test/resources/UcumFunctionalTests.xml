@@ -26,12 +26,14 @@
   contributers:
     * Gunther Schadow
 	* Lloyd Mackenzie
+    * Vladimir Alexiev
  
   This source is licensed for public use under the Eclipse Public License 
   (http://www.eclipse.org/legal/epl-v10.html). 
   
 -->
   <history>
+     <entry date="3-Feb 2021" author="VladimirAlexiev">Add test 4-103 for github #19: division of comparable units should produce unity</entry>
      <entry date="11-Oct 2018" author="gdg">Add test for correct interpretation of Pa</entry>
      <entry date="18-June 2014" author="gdg">Fixes for various issues, including trac #159 </entry>
      <entry date="31-May 2010" author="gdg">updated with fixes to a couple of original conversion tests (Thanks to Christof Gessner). Extended the conversion tests considerably - should be easier to track down conversion issues</entry>
