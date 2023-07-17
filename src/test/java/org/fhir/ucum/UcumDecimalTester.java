@@ -608,6 +608,39 @@ public class UcumDecimalTester {
       Assert.assertEquals(message, "6", res.asDecimal());
   }
 
+
+  @Test
+  public void testWholeNumberRounding() throws UcumException {
+    testRounding("1", "1");  
+    testRounding("0", "0");  
+    testRounding("9", "9");  
+    
+    testRounding("100", "100");  
+    testRounding("100.1", "100.1");  
+    testRounding("100.0000000000000000001", "100");  
+    testRounding("100.0000000000000000000", "100");  
+    testRounding("100.0000010000000000000", "100.000001");  
+    testRounding("100.0000000000000000010", "100.0000000000000000010");  
+    testRounding("100.0000010000000000100", "100.0000010000000000100");  
+    testRounding("100.0000010000000001000", "100.0000010000000001000");  
+    testRounding("100.0000010000000010000", "100.000001000000001");  
+    
+
+    testRounding("99", "99");  
+    testRounding("99.9", "99.9");  
+    testRounding("199.9999999999999999999", "200");  
+    testRounding("199.9999999999999999991", "200");  
+    testRounding("167.9999999999999999991", "168");  
+    testRounding("166.9999919999999999999", "166.999992");  
+
+  }
+  
+  private void testRounding(String value, String expected) throws UcumException {
+    Decimal dec = new Decimal(value);
+    dec.checkForCouldBeWholeNumber();
+    Assert.assertEquals(expected, dec.asDecimal());
+  }
+
   @Test
   public void testModulo() throws UcumException {
       Decimal res = new Decimal("10").modulo(new Decimal("1"));

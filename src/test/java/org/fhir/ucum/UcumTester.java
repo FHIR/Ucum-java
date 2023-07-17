@@ -108,8 +108,10 @@ public class UcumTester {
         throw new UcumException("unknown element name "+focus.getNodeName());
       focus = XmlUtils.getNextSibling(focus);
     }
-    if (errCount > 0)
+    if (errCount > 0) {
       System.err.println(Integer.toString(errCount)+" errors");
+    }
+    Assert.assertEquals(0, errCount);
   }
 
   private void runMultiplication(Element x) throws IOException, UcumException  {

@@ -59,7 +59,7 @@ public class Converter {
 	}
 	
 	private Canonical normalise(String indent, Term term) throws UcumException  {
-		Canonical result = new Canonical(new Decimal(1));
+		Canonical result = new Canonical(new Decimal("1.000000000000000000000000000000"));
 		
 		debug(indent, "canonicalise", term);
     boolean div = false;

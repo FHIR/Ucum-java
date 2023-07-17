@@ -297,6 +297,10 @@ public class UcumEssenceService implements UcumService {
 		if (!s.equals(d))
 			throw new UcumException("Unable to convert between units "+sourceUnit+" and "+destUnit+" as they do not have matching canonical forms ("+s+" and "+d+" respectively)");
 		Decimal canValue = value.multiply(src.getValue());
+		if (value.isWholeNumber()) {
+		  // whole numbers are tricky - they have implied infinite precision, but we need to check for digit errors in the last couple of digits
+		  canValue.checkForCouldBeWholeNumber();
+		}
 //		System.out.println(value.toPlainString()+sourceUnit+" =("+src.getValue().toPlainString()+")= "+
 //				canValue.toPlainString()+s+" =("+dst.getValue().toPlainString()+")= "+
 //				canValue.divide(dst.getValue())+destUnit);
