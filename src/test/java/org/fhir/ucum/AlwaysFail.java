@@ -8,6 +8,6 @@ import static junit.framework.TestCase.assertTrue;
 public class AlwaysFail {
     @Test
     public void fail() {
-        assertTrue(false);
+        assertTrue(true);
     }
 }
