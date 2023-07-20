@@ -36,6 +36,11 @@ steps:
             <properties>
               <gpg.keyname>$(PGP_KEYNAME)</gpg.keyname>
             </properties>
+            <server>
+              <id>github-releases</id>
+              <username>$(GIT_USER_NAME)</username>
+              <password>$(GIT_PACKAGE_PAT)</password>
+            </server>
           </profile>
         </profiles>
       </settings>
