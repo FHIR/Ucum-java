@@ -83,5 +83,5 @@ steps:
     inputs:
       mavenPomFile: '$(System.DefaultWorkingDirectory)/pom.xml'
       goals: deploy
-      options: '--settings $(System.DefaultWorkingDirectory)/settings.xml -Dmaven.test.skip -pl -e'
+      options: '--settings $(System.DefaultWorkingDirectory)/settings.xml -Dmaven.test.skip -e'
       publishJUnitResults: false
