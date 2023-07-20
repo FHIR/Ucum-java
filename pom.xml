@@ -13,6 +13,24 @@
     <description>FHIR Java library providing UCUM Services</description>
     <url>http://fhir.org</url>
 
+    <repositories>
+        <repository>
+            <id>oss-snapshot</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>github-releases</id>
+            <url>https://maven.pkg.github.com/FHIR/Ucum-java/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+
     <scm>
         <connection>scm:git:git@github.com:FHIR/Ucum-java.git</connection>
         <developerConnection>scm:git:git@github.com:FHIR/Ucum-java.git</developerConnection>
