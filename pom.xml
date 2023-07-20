@@ -263,11 +263,11 @@
             <distributionManagement>
                 <snapshotRepository>
                     <id>github</id>
-                    <url>https://maven.pkg.github.com/hapifhir/org.hl7.fhir.core</url>
+                    <url>https://maven.pkg.github.com/FHIR/Ucum-java</url>
                 </snapshotRepository>
                 <repository>
                     <id>github</id>
-                    <url>https://maven.pkg.github.com/hapifhir/org.hl7.fhir.core</url>
+                    <url>https://maven.pkg.github.com/FHIR/Ucum-java</url>
                 </repository>
             </distributionManagement>
             <build>
