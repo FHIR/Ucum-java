@@ -10,6 +10,7 @@ pool:
 
 variables:
   - group: PGP_VAR_GROUP
+  - group: GIT_VAR_GROUP
 
 steps:
   # For creating the snapshot release with maven, we need to build a fake settings.xml for it to read from.
@@ -74,3 +75,13 @@ steps:
       gpg --list-keys --keyid-format LONG
       gpg --list-secret-keys --keyid-format LONG
     displayName: 'Import signing keys.'
+
+  # Deploy the SNAPSHOT artifact to GitHub packages.
+  # This is done for the master branch merges only.
+  - task: Maven@3
+    displayName: 'Deploy to GitHub Packages'
+    inputs:
+      mavenPomFile: '$(System.DefaultWorkingDirectory)/pom.xml'
+      goals: deploy
+      options: '--settings $(System.DefaultWorkingDirectory)/settings.xml -Dmaven.test.skip -pl -e'
+      publishJUnitResults: false
