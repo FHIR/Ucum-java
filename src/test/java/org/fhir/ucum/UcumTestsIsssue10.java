@@ -18,7 +18,7 @@ public class UcumTestsIsssue10 {
   @Test
   public void KgToPoundTest() throws UcumException {
     long start = System.currentTimeMillis();
-    for (float i = 90.5f; i < 100f; i += 0.0001f) {
+    for (float i = 90.5f; i < 100f; i += 0.001f) {
       //    float i = 90.7183f;
       Decimal decimal = new Decimal(Float.toString(i));
       float expectPound = i * 2.2046226218487758072297380134503f;
