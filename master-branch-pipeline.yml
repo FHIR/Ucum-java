@@ -87,6 +87,16 @@ steps:
       gpg --list-secret-keys --keyid-format LONG
     displayName: 'Import signing keys.'
 
+  # Deploy the SNAPSHOT artifact to sonatype nexus.
+  # This is done for the master branch merges only.
+  - task: Maven@3
+    displayName: 'Deploy to Sonatype staging'
+    inputs:
+      mavenPomFile: '$(System.DefaultWorkingDirectory)/pom.xml'
+      goals: deploy
+      options: '--settings $(System.DefaultWorkingDirectory)/settings.xml -DdeployToSonatype -e'
+      publishJUnitResults: false
+
   # Deploy the SNAPSHOT artifact to GitHub packages.
   # This is done for the master branch merges only.
   - task: Maven@3
