@@ -91,6 +91,7 @@ steps:
   # This is done for the master branch merges only.
   - task: Maven@3
     displayName: 'Deploy to Sonatype staging'
+    enabled: false
     inputs:
       mavenPomFile: '$(System.DefaultWorkingDirectory)/pom.xml'
       goals: deploy
