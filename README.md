@@ -12,3 +12,4 @@ The library provides a set of services around UCUM:
 To use the library, download ucum-essence from http://unitsofmeasure.org, and then create a UCUMEssenceService:
 
 UcumService ucumSvc = new UcumEssenceService(definitionFile);
+
