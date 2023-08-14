@@ -7,7 +7,7 @@
     <packaging>jar</packaging>
     <groupId>org.fhir</groupId>
     <artifactId>ucum</artifactId>
-    <version>1.0.7-SNAPSHOT</version>
+    <version>1.0.7</version>
 
     <name>Ucum-java</name>
     <description>FHIR Java library providing UCUM Services</description>
