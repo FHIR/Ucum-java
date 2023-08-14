@@ -1,4 +1,7 @@
 # Ucum-java
+
+[![Build Status](https://dev.azure.com/fhir-pipelines/ucum-java/_apis/build/status%2FMaster%20Branch%20Pipeline?branchName=master)](https://dev.azure.com/fhir-pipelines/ucum-java/_build/latest?definitionId=51&branchName=master)
+
 FHIR Java library providing UCUM Services
 
 The library provides a set of services around UCUM:
