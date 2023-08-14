@@ -35,25 +35,24 @@ package org.fhir.ucum;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
+
 
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.fhir.ucum.utils.XmlUtils;
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.JUnitCore;
+
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 
-public class UcumTester {
+public class UcumFunctionalTests {
 
   @Test
   public void testSuite() throws IOException, UcumException, ParserConfigurationException, SAXException {
-    UcumTester worker = new UcumTester();
+    UcumFunctionalTests worker = new UcumFunctionalTests();
     worker.setDefinitions("src/main/resources/ucum-essence.xml");
     worker.setTests("src/test/resources/UcumFunctionalTests.xml");
     System.out.println("Defitions: " + worker.getDefinitions() + "\n" + "Tests: " + worker.getTests());

@@ -1,12 +1,15 @@
 package org.fhir.ucum;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+
+
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
-public class UcumCommonUnitsTest extends Assert
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+
+public class UcumCommonUnitsTest extends UcumServiceTest
 {
     static class CommonUnit
     {
@@ -29,20 +32,13 @@ public class UcumCommonUnitsTest extends Assert
         }
     }
 
-    private UcumEssenceService ucumSvc;
-
-    @Before
-    public void setup() throws Exception
-    {
-        ucumSvc = new UcumEssenceService("src/main/resources/ucum-essence.xml");
-    }
 
     @Test
     public void analyze() throws UcumException
     {
         for (CommonUnit cu : units)
         {
-            ucumSvc.analyse(cu.unit);
+            ucumService.analyse(cu.unit);
         }
     }
 
@@ -56,9 +52,9 @@ public class UcumCommonUnitsTest extends Assert
             // BUG?
             if ("dB".equals(cu.unit))
                 continue;
-            String can = ucumSvc.getCanonicalUnits(cu.unit);
+            String can = ucumService.getCanonicalUnits(cu.unit);
             if (null != cu.can)
-                assertEquals(cu.unit, cu.can, can);
+                assertEquals(cu.can, can,cu.unit);
             else if (set.add(cu.dim+" -> "+can) && cu.dim != null)
                 System.out.println(cu.dim+" -> "+can + "\t\t" + cu.unit);
         }
@@ -79,9 +75,9 @@ public class UcumCommonUnitsTest extends Assert
                 continue;
             try
             {
-                String can = ucumSvc.getCanonicalUnits(cu.unit);
+                String can = ucumService.getCanonicalUnits(cu.unit);
                 if (null != can && !"".equals(can))
-                    ucumSvc.convert(ONE, cu.unit, can);
+                    ucumService.convert(ONE, cu.unit, can);
             }
             catch (Exception x)
             {
@@ -100,7 +96,7 @@ public class UcumCommonUnitsTest extends Assert
             // BUG?
             if ("dB".equals(cu.unit))
                 continue;
-            String can = ucumSvc.getCanonicalUnits(cu.unit);
+            String can = ucumService.getCanonicalUnits(cu.unit);
             if (null == can || "".equals(can))
                 continue;
             if (!map.containsKey(can))
@@ -129,7 +125,7 @@ public class UcumCommonUnitsTest extends Assert
                         continue;
                     if ("Cel".equals(a.unit) || "[degF]".equals(a.unit))
                         continue;
-                    ucumSvc.convert(K, a.unit, b.unit);
+                    ucumService.convert(K, a.unit, b.unit);
                 }
                 catch (Exception x)
                 {
