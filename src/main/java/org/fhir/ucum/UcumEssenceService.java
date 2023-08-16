@@ -290,17 +290,17 @@ public class UcumEssenceService implements UcumService {
 		if (sourceUnit.equals(destUnit))
 			return value;
 			
-		Canonical src = new Converter(model, handlers).convert(new ExpressionParser(model).parse(sourceUnit), 17);
-		Canonical dst = new Converter(model, handlers).convert(new ExpressionParser(model).parse(destUnit), 17);
+		Canonical src = new Converter(model, handlers).convert(new ExpressionParser(model).parse(sourceUnit));
+		Canonical dst = new Converter(model, handlers).convert(new ExpressionParser(model).parse(destUnit));
 		String s = new ExpressionComposer().compose(src, false);
 		String d = new ExpressionComposer().compose(dst, false);
 		if (!s.equals(d))
 			throw new UcumException("Unable to convert between units "+sourceUnit+" and "+destUnit+" as they do not have matching canonical forms ("+s+" and "+d+" respectively)");
 		Decimal canValue = value.multiply(src.getValue());
 		Decimal res = canValue.divide(dst.getValue());
-        if (value.isWholeNumber()) {
-            // whole numbers are tricky - they have implied infinite precision, but we need to check for digit errors in the last couple of digits
-        res.checkForCouldBeWholeNumber();
+    if (value.isWholeNumber()) {
+      // whole numbers are tricky - they have implied infinite precision, but we need to check for digit errors in the last couple of digits
+      res.checkForCouldBeWholeNumber();
     }
     return res;
 	}

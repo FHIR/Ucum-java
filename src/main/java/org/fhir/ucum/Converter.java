@@ -41,8 +41,7 @@ import org.fhir.ucum.special.Registry;
 
 public class Converter {
 
-    public static final String HIGH_PRECISION_ONE_DECIMAL = "1.000000000000000000000000000000";
-    private UcumModel model;
+	private UcumModel model;
 	private Registry handlers;
 	
 	/**
@@ -54,23 +53,16 @@ public class Converter {
 		this.handlers = handlers;
 	}
 
+	
 	public Canonical convert(Term term) throws UcumException  {
-		return convert(term, 0);
+		return normalise("  ", term);
 	}
-
-    protected Canonical convert(Term term, int precision) throws UcumException {
-        return normalise("  ", term, precision);
-    }
-
-    private Canonical normalise(String indent, Term term) throws UcumException {
-        return normalise(indent, term, 0);
-    }
-
-	private Canonical normalise(String indent, Term term, int precision) throws UcumException  {
-		Canonical result = getCanonicalOneValue(precision);
+	
+	private Canonical normalise(String indent, Term term) throws UcumException  {
+		Canonical result = new Canonical(new Decimal("1.000000000000000000000000000000"));
 		
 		debug(indent, "canonicalise", term);
-        boolean div = false;
+    boolean div = false;
 		Term t = term;
 		while (t != null) {
     	if (t.getComp() instanceof Term) {
@@ -135,7 +127,7 @@ public class Converter {
 	}
 
   private Canonical normalise(String indent, Symbol sym) throws UcumException  {
-    Canonical result = getCanonicalOneValue(17);
+    Canonical result = new Canonical(new Decimal("1.000000000000000000000000000000"));
   	
   	if (sym.getUnit() instanceof BaseUnit) {
   		result.getUnits().add(new CanonicalUnit((BaseUnit) sym.getUnit(), sym.getExponent()));
@@ -163,14 +155,7 @@ public class Converter {
 		return result;
   }
 
-    private static Canonical getCanonicalOneValue(int precision) throws UcumException {
-        if (precision == 0) {
-           return new Canonical(new Decimal("1"));
-        }
-        return new Canonical(new Decimal(String.format("%."+precision+"f", 1d)));
-    }
-
-    private Canonical expandDefinedUnit(String indent, DefinedUnit unit) throws UcumException  {
+	private Canonical expandDefinedUnit(String indent, DefinedUnit unit) throws UcumException  {
 		String u = unit.getValue().getUnit();
 		Decimal v = unit.getValue().getValue();
 
