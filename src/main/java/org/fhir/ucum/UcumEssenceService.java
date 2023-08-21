@@ -266,43 +266,50 @@ public class UcumEssenceService implements UcumService {
 	 * @see org.eclipse.ohf.ucum.UcumServiceEx#getCanonicalForm(org.eclipse.ohf.ucum.UcumEssenceService.Pair)
 	 */
 	@Override
-  public Pair getCanonicalForm(Pair value) throws UcumException  {
-		assert value != null : paramError("getCanonicalForm", "value", "must not be null");
-		assert checkStringParam(value.getCode()) : paramError("getCanonicalForm", "value.code", "must not be null or empty");
-		
-		Term term = new ExpressionParser(model).parse(value.getCode());
-		Canonical c = new Converter(model, handlers).convert(term);
-		if (value.getValue() == null)
-			return new Pair(null, new ExpressionComposer().compose(c, false));
-		else
-			return new Pair(value.getValue().multiply(c.getValue()), new ExpressionComposer().compose(c, false));
+	public Pair getCanonicalForm(Pair value) throws UcumException  {
+	  assert value != null : paramError("getCanonicalForm", "value", "must not be null");
+	  assert checkStringParam(value.getCode()) : paramError("getCanonicalForm", "value.code", "must not be null or empty");
+
+	  Term term = new ExpressionParser(model).parse(value.getCode());
+	  Canonical c = new Converter(model, handlers).convert(term);
+	  Pair p = null;
+	  if (value.getValue() == null)
+	    p = new Pair(null, new ExpressionComposer().compose(c, false));
+	  else {
+	    p = new Pair(value.getValue().multiply(c.getValue()), new ExpressionComposer().compose(c, false));
+	    if (value.getValue().isWholeNumber()) {
+	      // whole numbers are tricky - they have implied infinite precision, but we need to check for digit errors in the last couple of digits
+	      p.getValue().checkForCouldBeWholeNumber();
+	    }
+	  }		
+	  return p;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.ohf.ucum.UcumServiceEx#convert(java.math.BigDecimal, java.lang.String, java.lang.String)
 	 */
 	@Override
-  public Decimal convert(Decimal value, String sourceUnit, String destUnit) throws UcumException  {
-		assert value != null : paramError("convert", "value", "must not be null");
-		assert checkStringParam(sourceUnit) : paramError("convert", "sourceUnit", "must not be null or empty");
-		assert checkStringParam(destUnit) : paramError("convert", "destUnit", "must not be null or empty");
+	public Decimal convert(Decimal value, String sourceUnit, String destUnit) throws UcumException  {
+	  assert value != null : paramError("convert", "value", "must not be null");
+	  assert checkStringParam(sourceUnit) : paramError("convert", "sourceUnit", "must not be null or empty");
+	  assert checkStringParam(destUnit) : paramError("convert", "destUnit", "must not be null or empty");
 
-		if (sourceUnit.equals(destUnit))
-			return value;
-			
-		Canonical src = new Converter(model, handlers).convert(new ExpressionParser(model).parse(sourceUnit));
-		Canonical dst = new Converter(model, handlers).convert(new ExpressionParser(model).parse(destUnit));
-		String s = new ExpressionComposer().compose(src, false);
-		String d = new ExpressionComposer().compose(dst, false);
-		if (!s.equals(d))
-			throw new UcumException("Unable to convert between units "+sourceUnit+" and "+destUnit+" as they do not have matching canonical forms ("+s+" and "+d+" respectively)");
-		Decimal canValue = value.multiply(src.getValue());
-		Decimal res = canValue.divide(dst.getValue());
-    if (value.isWholeNumber()) {
-      // whole numbers are tricky - they have implied infinite precision, but we need to check for digit errors in the last couple of digits
-      res.checkForCouldBeWholeNumber();
-    }
-    return res;
+	  if (sourceUnit.equals(destUnit))
+	    return value;
+
+	  Canonical src = new Converter(model, handlers).convert(new ExpressionParser(model).parse(sourceUnit));
+	  Canonical dst = new Converter(model, handlers).convert(new ExpressionParser(model).parse(destUnit));
+	  String s = new ExpressionComposer().compose(src, false);
+	  String d = new ExpressionComposer().compose(dst, false);
+	  if (!s.equals(d))
+	    throw new UcumException("Unable to convert between units "+sourceUnit+" and "+destUnit+" as they do not have matching canonical forms ("+s+" and "+d+" respectively)");
+	  Decimal canValue = value.multiply(src.getValue());
+	  Decimal res = canValue.divide(dst.getValue());
+	  if (value.isWholeNumber()) {
+	    // whole numbers are tricky - they have implied infinite precision, but we need to check for digit errors in the last couple of digits
+	    res.checkForCouldBeWholeNumber();
+	  }
+	  return res;
 	}
 
 	@Override
