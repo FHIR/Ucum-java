@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+    "-//Puppy Crawl//DTD Check Configuration 1.3//EN"
+    "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
+
+<module name="Checker">
+
+    <property name="severity" value="error"/>
+    <property name="charset" value="UTF-8"/>
+    <property name="fileExtensions" value="java, properties, xml, js, json"/>
+    <module name="TreeWalker">
+        <!--
+        <module name="TodoComment">-->
+        <!-- The (?i) below means Case Insensitive -->
+        <!--<property name="format" value="(?i)FIXME"/>
+-->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="org\.jetbrains\.annotations\.NotNull"/>
+        </module>
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="org\.jetbrains\.annotations\.Nullable"/>
+        </module>
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="org\.jetbrains\.annotations\.\*"/>
+        </module>
+    </module>
+    <module name="RegexpMultiline">
+        <property name="id" value="transformerFactoryNewInstance"/>
+        <property name="matchAcrossLines" value="true"/>
+        <property name="format" value="TransformerFactory\.newInstance\("/>
+        <property name="message"
+                  value="Usage of TransformerFactory.newInstance() is not permitted. If you require this constructor, please add an XXE protected usage to XMLUtils and add the line number to checkstyle_suppressions.xml"
+        />
+    </module>
+    <module name="RegexpMultiline">
+        <property name="id" value="documentBuilderFactoryNewInstance"/>
+        <property name="matchAcrossLines" value="true"/>
+        <property name="format" value="DocumentBuilderFactory\.newInstance\("/>
+        <property name="message"
+                  value="Usage of DocumentBuilderFactory.newInstance() is only allowed in XMLUtils.parseDOM(InputStream stream). If the location of this call in XMLUtils has changed, please modify the expected line number in checkstyle_suppressions.xml"
+        />
+    </module>
+    <module name="RegexpMultiline">
+        <property name="id" value="saxParserFactoryNewInstance"/>
+        <property name="matchAcrossLines" value="true"/>
+        <property name="format" value="SAXParserFactory\.newInstance\("/>
+        <property name="message"
+                  value="Usage of SAXParserFactory.newInstance() is not permitted. If you require this constructor, please add an XXE protected usage to XMLUtils and add the line number to checkstyle_suppressions.xml"
+        />
+    </module>
+    <module name="RegexpMultiline">
+        <property name="id" value="getXMLReader"/>
+        <property name="matchAcrossLines" value="true"/>
+        <property name="format" value="\.getXMLReader\("/>
+        <property name="message"
+                  value="Usage of SAXParserFactory.getXMLReader() is not permitted. If you require this constructor, please add an XXE protected usage to XMLUtils and add the line number to checkstyle_suppressions.xml"
+        />
+    </module>
+</module>
