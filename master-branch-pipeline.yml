@@ -58,7 +58,7 @@ steps:
     inputs:
       mavenPomFile: 'pom.xml'
       mavenOptions: '-Xmx3072m'
-      options: '--settings $(System.DefaultWorkingDirectory)/settings.xml'
+      options: '--settings $(System.DefaultWorkingDirectory)/settings.xml -P CHECKSTYLE'
       javaHomeOption: 'JDKVersion'
       jdkVersionOption: '1.11'
       jdkArchitectureOption: 'x64'
