@@ -54,11 +54,11 @@ steps:
     displayName: 'Create .mvn/settings.xml'
 
   # Runs 'mvn package'
-  - task: Maven@3
+  - task: Maven@4
     inputs:
       mavenPomFile: 'pom.xml'
       mavenOptions: '-Xmx3072m'
-      options: '--settings $(System.DefaultWorkingDirectory)/settings.xml'
+      options: '--settings $(System.DefaultWorkingDirectory)/settings.xml -P CHECKSTYLE'
       javaHomeOption: 'JDKVersion'
       jdkVersionOption: '1.11'
       jdkArchitectureOption: 'x64'
@@ -89,7 +89,7 @@ steps:
 
   # Deploy the SNAPSHOT artifact to sonatype nexus.
   # This is done for the master branch merges only.
-  - task: Maven@3
+  - task: Maven@4
     displayName: 'Deploy to Sonatype staging'
     inputs:
       mavenPomFile: '$(System.DefaultWorkingDirectory)/pom.xml'
@@ -99,7 +99,7 @@ steps:
 
   # Deploy the SNAPSHOT artifact to GitHub packages.
   # This is done for the master branch merges only.
-  - task: Maven@3
+  - task: Maven@4
     displayName: 'Deploy to GitHub Packages'
     inputs:
       mavenPomFile: '$(System.DefaultWorkingDirectory)/pom.xml'

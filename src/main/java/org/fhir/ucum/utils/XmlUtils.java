@@ -18,6 +18,8 @@ public class XmlUtils {
 
   public static Document parseDOM(InputStream stream) throws ParserConfigurationException, SAXException, IOException {
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+    factory.setXIncludeAware(false);
     factory.setNamespaceAware(false);
     DocumentBuilder builder = factory.newDocumentBuilder();
     Document doc = builder.parse(stream);
