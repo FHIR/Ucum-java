@@ -33,21 +33,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package org.fhir.ucum.definitions;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.fhir.ucum.BaseUnit;
 import org.fhir.ucum.Decimal;
@@ -59,8 +51,6 @@ import org.fhir.ucum.Value;
 import org.fhir.ucum.utils.XmlUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.xml.sax.SAXException;
 
 /**
  * Parses the file ucum-essense.xml
@@ -86,8 +76,16 @@ public class XmlDefinitionsParser implements DefinitionsProvider {
 
 	    if (!element.getNodeName().equals("root")) 
 	      throw new UcumException("Unable to process XML document: expected 'root' but found '"+element.getNodeName()+"'");
-	    DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd' 'HH:mm:ss' 'Z");
-	    Date date = fmt.parse(element.getAttribute("revision-date").substring(7, 32));        
+          String dt = element.getAttribute("revision-date");
+        Date date;
+        if (dt.length() > 25) {
+          // old format: $Date: 2017-11-21 19:04:52 -0500"
+          DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd' 'HH:mm:ss' 'Z");
+          date = fmt.parse(dt.substring(7, 32));
+        } else {
+          DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
+          date = fmt.parse(dt);
+        }
 	    UcumModel root = new UcumModel(element.getAttribute("version"), element.getAttribute("revision"), date);
 	    Element focus = XmlUtils.getFirstChild(element);
 	    while (focus != null) {
