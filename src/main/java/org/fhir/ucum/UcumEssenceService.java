@@ -40,7 +40,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.fhir.ucum.definitions.DefinitionsProvider;
 import org.fhir.ucum.definitions.DefinitionsProviderFactory;
 import org.fhir.ucum.definitions.XmlDefinitionsParser;
 import org.fhir.ucum.special.Registry;
