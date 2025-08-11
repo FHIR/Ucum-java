@@ -6,4 +6,4 @@ Only new releases of this project will contain security updates. All clients sho
 
 ## Reporting Vulnerabilities
 
-Please report all potential security vulnerabilities using the [Report a vulnerability](../../security/advisories/new) button in the [Security](../../security) section of this repository. 
+Please report all potential security vulnerabilities at [https://github.com/FHIR/Ucum-java/security/advisories/new](https://github.com/FHIR/Ucum-java/security/advisories/new) or using the [Report a vulnerability](../../security/advisories/new) button in the [Security](../../security) section of this repository. 
