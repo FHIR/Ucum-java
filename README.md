@@ -1,5 +1,5 @@
 # Ucum-java
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/FHIR/Ucum-java/badge)](https://scorecard.dev/viewer/?uri=github.com/FHIR/Ucum-java)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/FHIR/Ucum-java/badge)](https://scorecard.dev/viewer/?uri=github.com/FHIR/Ucum-java) [![CodeQL](https://github.com/FHIR/Ucum-java/actions/workflows/codeql.yml/badge.svg)](https://github.com/FHIR/Ucum-java/actions/workflows/codeql.yml) [![OWASP Security Scans](https://github.com/FHIR/Ucum-java/actions/workflows/owasp.yml/badge.svg)](https://github.com/FHIR/Ucum-java/actions/workflows/owasp.yml) [![Trivy Security Scans](https://github.com/FHIR/Ucum-java/actions/workflows/trivy.yml/badge.svg)](https://github.com/FHIR/Ucum-java/actions/workflows/trivy.yml)
 
 |                           CI Status (master)                           |                                            Current Release |      Latest SNAPSHOT       |
 |:----------------------------------------------------------------------:|-----------------------------------------------------------:|:--------------------------:|
@@ -13,7 +13,7 @@ The library provides a set of services around UCUM:
 - validate a UCUM unit (and also against a particular base unit)
 - decide whether one unit can be converted/compared to another
 - translate a quantity from one unit to another 
-- prepare a human readable display of a unit 
+- prepare a human-readable display of a unit 
 - multiply 2 quantities together
 
 To use the library, download ucum-essence from http://unitsofmeasure.org, and then create a UCUMEssenceService:
