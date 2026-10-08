@@ -17,7 +17,7 @@ steps:
   # For creating the snapshot release with maven, we need to build a fake settings.xml for it to read from.
   # This is done for the master branch merges only.
   - bash: |
-      cat >"$(System.DefaultWorkingDirectory)/settings.xml" <<'EOL'
+      cat >$(System.DefaultWorkingDirectory)/settings.xml <<EOL
       <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                 xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
@@ -25,17 +25,17 @@ steps:
         <servers>
           <server>
             <id>github</id>
-            <username>${env.GIT_USER_NAME}</username>
-            <password>${env.GIT_PACKAGE_PAT}</password>
+            <username>$(GIT_USER_NAME)</username>
+            <password>$(GIT_PACKAGE_PAT)</password>
           </server>
           <server>
             <id>central</id>
-            <username>${env.MAVEN_CENTRAL_USER}</username>
-            <password>${env.MAVEN_CENTRAL_PASS}</password>
+            <username>$(MAVEN_CENTRAL_USER)</username>
+            <password>$(MAVEN_CENTRAL_PASS)</password>
           </server>
           <server>
             <id>$(PGP_KEYNAME)</id>
-            <passphrase>${env.PGP_PASSPHRASE}</passphrase>
+            <passphrase>$(PGP_PASSPHRASE)</passphrase>
           </server>
         </servers>
         <profiles>
@@ -96,10 +96,6 @@ steps:
       goals: deploy
       options: '--settings $(System.DefaultWorkingDirectory)/settings.xml -Dmaven.test.skip -DdeployToMavenCentral -e'
       publishJUnitResults: false
-    env:
-      MAVEN_CENTRAL_USER: $(MAVEN_CENTRAL_USER)
-      MAVEN_CENTRAL_PASS: $(MAVEN_CENTRAL_PASS)
-      PGP_PASSPHRASE: $(PGP_PASSPHRASE)
 
   # Deploy the SNAPSHOT artifact to GitHub packages.
   # This is done for the master branch merges only.
@@ -110,7 +106,3 @@ steps:
       goals: deploy
       options: '--settings $(System.DefaultWorkingDirectory)/settings.xml -Dmaven.test.skip -DdeployToGitHub -e'
       publishJUnitResults: false
-    env:
-      GIT_USER_NAME: $(GIT_USER_NAME)
-      GIT_PACKAGE_PAT: $(GIT_PACKAGE_PAT)
-      PGP_PASSPHRASE: $(PGP_PASSPHRASE)
