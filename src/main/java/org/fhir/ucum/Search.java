@@ -38,53 +38,61 @@ import java.util.List;
 
 public class Search {
 
+	/**
+	 * @throws IllegalArgumentException if isRegex and the text isn't a valid regular expression, 
+	 *   or it takes too long to evaluate (see RegexTimeout)
+	 */
 	public List<Concept> doSearch(UcumModel model, ConceptKind kind, String text, boolean isRegex) {
+		RegexTimeout regex = isRegex ? new RegexTimeout(text, RegexTimeout.DEFAULT_TIMEOUT) : null;
 		List<Concept> concepts = new ArrayList<Concept>();
 		if (kind == null || kind == ConceptKind.PREFIX)
-			searchPrefixes(concepts, model.getPrefixes(), text, isRegex);
+			searchPrefixes(concepts, model.getPrefixes(), text, regex);
 		if (kind == null || kind == ConceptKind.BASEUNIT)
-			searchUnits(concepts, model.getBaseUnits(), text, isRegex);
+			searchUnits(concepts, model.getBaseUnits(), text, regex);
 		if (kind == null || kind == ConceptKind.UNIT)
-			searchUnits(concepts, model.getDefinedUnits(), text, isRegex);
+			searchUnits(concepts, model.getDefinedUnits(), text, regex);
 		return concepts;
 	}
-	
-	private void searchUnits(List<Concept> concepts, List<? extends Unit> units, String text, boolean isRegex) {
+
+	private void searchUnits(List<Concept> concepts, List<? extends Unit> units, String text, RegexTimeout regex) {
 		for (Unit unit : units) {
-			if (matchesUnit(unit, text, isRegex))
+			if (matchesUnit(unit, text, regex))
 				concepts.add(unit);
 		}
 	}
 
-	private boolean matchesUnit(Unit unit, String text, boolean isRegex) {
-		return matches(unit.getProperty(), text, isRegex) || matchesConcept(unit, text, isRegex);
+	private boolean matchesUnit(Unit unit, String text, RegexTimeout regex) {
+		return matches(unit.getProperty(), text, regex) || matchesConcept(unit, text, regex);
 	}
 
-	private void searchPrefixes(List<Concept> concepts, List<? extends Prefix> prefixes, String text, boolean isRegex) {
+	private void searchPrefixes(List<Concept> concepts, List<? extends Prefix> prefixes, String text, RegexTimeout regex) {
 		for (Concept concept : prefixes) {
-			if (matchesConcept(concept, text, isRegex))
+			if (matchesConcept(concept, text, regex))
 				concepts.add(concept);
 		}		
 	}
 
-	private boolean matchesConcept(Concept concept, String text, boolean isRegex) {
+	private boolean matchesConcept(Concept concept, String text, RegexTimeout regex) {
 		for (String name : concept.getNames()) {
-			if (matches(name, text, isRegex))
+			if (matches(name, text, regex))
 				return true;
 		}
-		if (matches(concept.getCode(), text, isRegex))
+		if (matches(concept.getCode(), text, regex))
 			return true;
-		if (matches(concept.getCodeUC(), text, isRegex))
+		if (matches(concept.getCodeUC(), text, regex))
 			return true;
-		if (matches(concept.getPrintSymbol(), text, isRegex))
+		if (matches(concept.getPrintSymbol(), text, regex))
 			return true;
 		return false;
 	}
 
-	private boolean matches(String value, String text, boolean isRegex) {
-		return (value != null) && ((isRegex  && value.matches(text)) || (!isRegex && value.toLowerCase().contains(text.toLowerCase())));
+	private boolean matches(String value, String text, RegexTimeout regex) {
+		if (value == null)
+			return false;
+		else if (regex != null)
+			return regex.matches(value);
+		else
+			return value.toLowerCase().contains(text.toLowerCase());
 	}
 
-
 }
-

@@ -34,26 +34,38 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.fhir.ucum;
 
 /**
-    Precision aware Decimal implementation. Any size number with any number of significant digits is supported.
+    Precision aware Decimal implementation. Any size number with any number of significant digits is supported
+    (but see the precision limits below).
 
-    Note that operations are precision aware operations. Note that whole numbers are assumed to have
-    unlimited precision. For example:
+    Note that operations are precision aware operations: the result is limited to the number of
+    significant figures that the operands justify. Whole numbers are assumed to be exact for 
+    multiplication. For example:
       2 x 2 = 4
       2.0 x 2.0 = 4.0
       2.00 x 2.0 = 4.0
-    and
-     10 / 3 = 3.33333333333333333333333333333333333333333333333
-     10.0 / 3 = 3.33
-     10.00 / 3 = 3.333
-     10.00 / 3.0 = 3.3
+    For division, a whole number has as many significant figures as it has digits, so:
+     10 / 3 = 3.3        (10 has 2 significant figures)
+     10.0 / 3 = 3.33     (3 significant figures)
+     10.00 / 3 = 3.333   (4 significant figures)
+     10.00 / 3.0 = 3.3   (3.0 has 2 significant figures)
      10 / 3.0 = 3.3
+     10 / 4 = 2.5        (exact results are not truncated)
 
-    Addition
+    Addition does not (yet) take precision into account:
       2 + 0.001 = 2.001
-      2.0 + 0.001 = 2.0
+      2.0 + 0.001 = 2.001
 
     Note that the string representation is precision limited, but the internal representation
     is not.
+
+    Precision limits: multiplication rounds its operands and its result to at most 
+    getMultiplyPrecisionLimit() significant digits. Division rounds its operands to at most
+    getDividePrecisionLimit() significant digits, and calculates at most that many digits beyond 
+    the length of the operands. Both default to 40 and can be changed application wide. These
+    limits exist so that long numbers, or repeated operations, can't make the cost of 
+    operations grow without bound. 
+    
+    Numbers in scientific notation must have an exponent within +/- MAX_EXPONENT (1000).
 
     
   * This class is defined to work around the limitations of Java Big Decimal
@@ -62,6 +74,67 @@ package org.fhir.ucum;
  *
  */
 public class Decimal {
+
+	/**
+	 * The default limit for the number of significant digits that multiplication will produce,
+	 * and the number of digits beyond the operands that division will calculate
+	 */
+	public static final int DEFAULT_PRECISION_LIMIT = 40;
+
+	/**
+	 * The largest (absolute) exponent accepted when parsing a number in scientific notation.
+	 * Without a limit, a short string such as 1e300000000 is accepted but can't be 
+	 * represented as a string (or compared or added to) without exhausting memory
+	 */
+	public static final int MAX_EXPONENT = 1000;
+
+	private static volatile int multiplyPrecisionLimit = DEFAULT_PRECISION_LIMIT;
+	private static volatile int dividePrecisionLimit = DEFAULT_PRECISION_LIMIT;
+
+	/**
+	 * @return the maximum number of significant digits a multiplication will produce. 
+	 * The result is rounded (half up) to this many digits, and so are any operands with more digits
+	 */
+	public static int getMultiplyPrecisionLimit() {
+		return multiplyPrecisionLimit;
+	}
+
+	/**
+	 * Set the maximum number of significant digits a multiplication will produce 
+	 * (application wide). Operands with more digits than this are rounded first. Without a 
+	 * limit, repeated multiplication grows the number of digits without bound, and the cost
+	 * of multiplication grows faster than the number of digits. Default is 40.
+	 * 
+	 * @param limit - must be at least 1
+	 */
+	public static void setMultiplyPrecisionLimit(int limit) {
+		if (limit < 1)
+			throw new IllegalArgumentException("Multiply precision limit must be at least 1");
+		multiplyPrecisionLimit = limit;
+	}
+
+	/**
+	 * @return the number of digits beyond the length of the operands that division will 
+	 * calculate before stopping (for non-terminating results such as 1/3). Operands with
+	 * more significant digits than this are rounded to this many digits first
+	 */
+	public static int getDividePrecisionLimit() {
+		return dividePrecisionLimit;
+	}
+
+	/**
+	 * Set the number of digits beyond the length of the operands that division will 
+	 * calculate before stopping, for non-terminating results such as 1/3 (application wide). 
+	 * Operands with more significant digits than this are rounded to this many digits first, 
+	 * since the cost of division grows with the square of the number of digits. Default is 40.
+	 * 
+	 * @param limit - must be at least 1
+	 */
+	public static void setDividePrecisionLimit(int limit) {
+		if (limit < 1)
+			throw new IllegalArgumentException("Divide precision limit must be at least 1");
+		dividePrecisionLimit = limit;
+	}
 
 	private int precision;
 	private boolean scientific;
@@ -121,14 +194,18 @@ public class Decimal {
 		if (negative)
 			value = value.substring(1);
 
-		while (value.startsWith("0") && value.length() > 1)
-			value = value.substring(1);
+		int start = 0;
+		while (start < value.length() - 1 && value.charAt(start) == '0')
+			start++;
+		value = value.substring(start);
+		if (value.length() == 0)
+			throw new UcumException("'"+(negative ? "-" : "")+"' is not a valid decimal");
 
 		for (int i = 0; i < value.length(); i++) {
 			if (value.charAt(i) == '.' && dec == -1)
 				dec = i;
-			else if (!Character.isDigit(value.charAt(i)))
-				throw new UcumException("'"+value+"' is not a valid decimal");
+			else if (!isAsciiDigit(value.charAt(i)))
+				throw new UcumException("'"+Utilities.truncate(value)+"' is not a valid decimal");
 		}
 
 		if (dec == -1) {
@@ -136,7 +213,7 @@ public class Decimal {
 			decimal = value.length();
 			digits = value;
 		} else if (dec == value.length() -1)
-			throw new UcumException("'"+value+"' is not a valid decimal");
+			throw new UcumException("'"+Utilities.truncate(value)+"' is not a valid decimal");
 		else {
 			decimal = dec;
 			if (allZeros(value, 1))
@@ -146,12 +223,18 @@ public class Decimal {
 			digits = delete(value, decimal, 1);
 			if (allZeros(digits, 0))
 				precision++;
-			else
-				while (digits.charAt(0) == '0') {
-					digits = digits.substring(1);
-					decimal--;
-				}
+			else {
+				int z = 0;
+				while (digits.charAt(z) == '0') 
+					z++;
+				digits = digits.substring(z);
+				decimal = decimal - z;
+			}
 		}
+	}
+
+	private static boolean isAsciiDigit(char ch) {
+		return ch >= '0' && ch <= '9';
 	}
 
 	private boolean allZeros(String s, int start) {
@@ -167,9 +250,10 @@ public class Decimal {
 		int i = value.indexOf(".");
 		if (i > -1)
 			value = delete(value, i, 1);
-		while (value.charAt(0) == '0')
-			value = value.substring(1);
-		return value.length();
+		int z = 0;
+		while (z < value.length() && value.charAt(z) == '0')
+			z++;
+		return value.length() - z;
 	}
 
 	private String delete(String value, int offset, int length) {
@@ -185,9 +269,9 @@ public class Decimal {
 		String e = value.substring(i+1);
 				
 	  if (Utilities.noString(s) || s.equals("-") || !Utilities.isDecimal(s))
-	    throw new UcumException("'"+value+"' is not a valid decimal (numeric)");
+	    throw new UcumException("'"+Utilities.truncate(value)+"' is not a valid decimal (numeric)");
 	  if (Utilities.noString(e) || e.equals("-") || !Utilities.isInteger(e))
-	    throw new UcumException("'"+value+"' is not a valid decimal (exponent)");
+	    throw new UcumException("'"+Utilities.truncate(value)+"' is not a valid decimal (exponent)");
 
 	  setValueDecimal(s);
 	  scientific = true;
@@ -199,12 +283,15 @@ public class Decimal {
 	  else
 	    i = 0;
 	  while (i < e.length()) {
-	    if (!Character.isDigit(e.charAt(i)))
-	      throw new UcumException(""+value+"' is not a valid decimal");
+	    if (!isAsciiDigit(e.charAt(i)))
+	      throw new UcumException("'"+Utilities.truncate(value)+"' is not a valid decimal");
 	    i++;
 	  }
 	  i = Integer.parseInt(e);
-	  decimal = decimal + i;
+	  long d = (long) decimal + i;
+	  if (d - 1 > MAX_EXPONENT || d - 1 < -MAX_EXPONENT) // d - 1 is the exponent when written as d.ddd x 10^e
+	    throw new UcumException("'"+Utilities.truncate(value)+"' is not a valid decimal (exponent is too large: limit is "+MAX_EXPONENT+")");
+	  decimal = (int) d;
 	}
 
 	private String stringMultiply(char c, int i) {
@@ -287,7 +374,8 @@ public class Decimal {
 	}
 
 	public boolean isWholeNumber() {
-	  return !asDecimal().contains(".");
+	  // equivalent to !asDecimal().contains("."), without building the string 
+	  return decimal >= digits.length();
 	}
 
 	public String asDecimal() {
@@ -535,67 +623,29 @@ public class Decimal {
 	public Decimal multiply(Decimal other) {
 		if (other == null)
 			return null;
+		int limit = multiplyPrecisionLimit;
+		if (digits.length() > limit || other.digits.length() > limit)
+			// operands with more digits than the limit are rounded first, so that the cost is bounded
+			return roundedTo(limit).doMultiply(other.roundedTo(limit), limit);
+		else
+			return doMultiply(other, limit);
+	}
 
+	private Decimal doMultiply(Decimal other, int limit) {
 		if (isZero() || other.isZero())
 			return zero();
 
-		int max = Math.max(decimal, other.decimal);
-		String s1 = stringMultiply('0', max - decimal+1) + digits;
-		String s2 = stringMultiply('0', max - other.decimal+1) + other.digits;
-		if (s1.length() < s2.length())
-			s1 = s1 + stringMultiply('0', s2.length() - s1.length());
-		else if (s2.length() < s1.length())
-			s2 = s2 + stringMultiply('0', s1.length() - s2.length());
+		// multiply the significant digits as integers; the cost depends only on the number of 
+		// digits, not the magnitude of the numbers. The value is digits x 10^(decimal - digits.length())
+		String res = new java.math.BigInteger(digits).multiply(new java.math.BigInteger(other.digits)).toString();
+		int dec = res.length() + (decimal - digits.length()) + (other.decimal - other.digits.length());
 
-		if (s2.compareTo(s1) > 0) {
-			String s3 = s1;
-			s1 = s2;
-			s2 = s3;
-		}
-		String[] s = new String[s2.length()];
-
-		int t = 0;
-		for (int i = s2.length()-1; i >= 0; i--) {
-			s[i] = stringMultiply('0', s2.length()-(i+1));
-			int c = 0;
-			for (int j = s1.length() - 1; j >= 0; j--) {
-				t = c + (dig(s1.charAt(j)) * dig(s2.charAt(i)));
-				s[i] = insert(String.valueOf(cdig(t % 10)), s[i], 0);
-				c = t / 10;
+		if (res.length() > limit) {
+			res = roundDigits(res, limit);
+			if (res.length() > limit) { // carried into a new leading digit
+				res = res.substring(0, limit);
+				dec++;
 			}
-			while (c > 0) {
-				s[i] = insert(String.valueOf(cdig(t % 10)), s[i], 0);
-				c = t / 10;
-			}
-		}
-
-		t = 0;
-		for (String sv : s)
-			t = Math.max(t, sv.length());
-		for (int i = 0; i < s.length; i++) 
-			s[i] = stringMultiply('0', t-s[i].length())+s[i];
-
-		String res = "";
-		int c = 0;
-		for (int i = t - 1; i>= 0; i--) {
-			for (int j = 0; j < s.length; j++) 
-				c = c + dig(s[j].charAt(i));
-			res = insert(String.valueOf(cdig(c %10)), res, 0);
-			c = c / 10;
-		}
-
-		if (c > 0) {
-			throw new Error("internal logic error");
-			//        while..
-			//        s[i-1] = s[i-1] + cdig(t mod 10);
-			//        c = t div 10;
-		}
-
-		int dec = res.length() - ((s1.length() - (max+1))*2);
-
-		while (!Utilities.noString(res) && !res.equals("0") && res.startsWith("0")) {
-			res = res.substring(1);
-			dec--;
 		}
 
 		int prec = 0;
@@ -608,6 +658,7 @@ public class Decimal {
 			prec = precision;
 		else
 			prec = Math.min(precision, other.precision);
+		prec = Math.min(prec, limit);
 		while (res.length() > prec && res.charAt(res.length()-1) == '0')
 			res = delete(res, res.length()-1, 1);
 
@@ -624,9 +675,58 @@ public class Decimal {
 		return result;
 	}
 
+	/**
+	 * Round a string of digits (half up) to the given number of digits. The position of the 
+	 * decimal point doesn't change unless the rounding carries into a new leading digit 
+	 * (999.. -> 1000..), in which case the result has limit+1 digits 
+	 */
+	private static String roundDigits(String s, int limit) {
+		if (s.length() <= limit)
+			return s;
+		boolean up = s.charAt(limit) >= '5';
+		char[] rs = s.substring(0, limit).toCharArray();
+		int i = rs.length - 1;
+		while (up && i >= 0) {
+			if (rs[i] == '9') {
+				rs[i] = '0';
+				i--;
+			} else {
+				rs[i]++;
+				up = false;
+			}
+		}
+		return up ? "1"+new String(rs) : new String(rs);
+	}
+
+	/**
+	 * @return this value rounded to at most limit significant digits (or this, if it's already short enough)
+	 */
+	private Decimal roundedTo(int limit) {
+		if (digits.length() <= limit)
+			return this;
+		Decimal result = copy();
+		String r = roundDigits(digits, limit);
+		if (r.length() > limit) {
+			r = r.substring(0, limit);
+			result.decimal++;
+		}
+		result.digits = r;
+		result.precision = Math.min(precision, limit);
+		return result;
+	}
+
 	public Decimal divide(Decimal other) throws UcumException  {
 		if (other == null)
 			return null;
+		int limit = dividePrecisionLimit;
+		if (digits.length() > limit || other.digits.length() > limit)
+			// operands with more digits than the limit are rounded first, so that the cost is bounded
+			return roundedTo(limit).doDivide(other.roundedTo(limit), limit);
+		else
+			return doDivide(other, limit);
+	}
+
+	private Decimal doDivide(Decimal other, int limit) throws UcumException  {
 
 		if (isZero())
 			return zero();
@@ -635,7 +735,7 @@ public class Decimal {
 			throw new UcumException("Attempt to divide "+toString()+" by zero");
 
 		String s = "0"+other.digits;
-		int m = Math.max(digits.length(), other.digits.length()) + 40; // max loops we'll do
+		int m = Math.max(digits.length(), other.digits.length()) + limit; // max loops we'll do
 		String[] tens = new String[10];
 		tens[0] = stringAddition(stringMultiply('0', s.length()), s);
 		for (int i = 1; i < 10; i++)

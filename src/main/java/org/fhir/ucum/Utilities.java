@@ -84,6 +84,20 @@ public class Utilities {
     return s.toString();
   }
 
+  public static final int MAX_MESSAGE_VALUE_LENGTH = 100;
+
+  /**
+   * Shorten a caller supplied value for inclusion in an error message, so that a huge 
+   * input doesn't produce a huge message
+   */
+  public static String truncate(String s) {
+    if (s == null)
+      return "null";
+    if (s.length() <= MAX_MESSAGE_VALUE_LENGTH)
+      return s;
+    return s.substring(0, MAX_MESSAGE_VALUE_LENGTH)+"... ("+s.length()+" chars)";
+  }
+
   public static boolean isAsciiChar(char ch) {
     return ch >= ' ' && ch <= '~'; 
   }

@@ -3,6 +3,10 @@ package org.fhir.ucum;
 
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
+
+import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
 
@@ -662,4 +666,95 @@ private String getAddSubMessage(String s1, String s2, String s3, String op, Deci
     return String.format("%s %s %s = %s, but the library returned %s", s1, op, s2, s3, result.asDecimal());
 }
 
+
+  @Test
+  public void testMultiplyPrecisionLimit() throws UcumException {
+    int saved = Decimal.getMultiplyPrecisionLimit();
+    try {
+      assertEquals(Decimal.DEFAULT_PRECISION_LIMIT, saved);
+      // magnitude doesn't cost anything, and the digits are capped at the limit
+      Decimal v = new Decimal("1.000000000000000000000000000000");
+      Decimal avogadro = new Decimal("6.0221367e23");
+      for (int i = 0; i < 30; i++)
+        v = v.multiply(avogadro);
+      assertEquals("2.468984069618747601428495970122185171141e713", v.asScientific());
+
+      Decimal.setMultiplyPrecisionLimit(5);
+      assertEquals("9.9998e9", new Decimal("99999").multiply(new Decimal("99999")).asScientific()); // 9999800001
+      assertEquals("300000", new Decimal("99999").multiply(new Decimal("3")).asDecimal()); // 299997, carries into a new digit
+      assertEquals("12.346", new Decimal("1.23456").multiply(new Decimal("10.0000")).asDecimal());
+      assertEquals("6", new Decimal("2").multiply(new Decimal("3")).asDecimal());
+      assertThrows(IllegalArgumentException.class, () -> Decimal.setMultiplyPrecisionLimit(0));
+    } finally {
+      Decimal.setMultiplyPrecisionLimit(saved);
+    }
+  }
+
+  @Test
+  public void testDividePrecisionLimit() throws UcumException {
+    int saved = Decimal.getDividePrecisionLimit();
+    try {
+      assertEquals(Decimal.DEFAULT_PRECISION_LIMIT, saved);
+      // the limit is the number of digits calculated beyond the length of the operands;
+      // the result is then rounded to the precision of the operands as usual
+      assertEquals("0.3333333333333333333333333333333333333333333", new Decimal("1.0", 60).divide(new Decimal("3.0", 60)).asDecimal());
+      Decimal.setDividePrecisionLimit(5);
+      assertEquals("0.33333333", new Decimal("1.0", 60).divide(new Decimal("3.0", 60)).asDecimal());
+      assertEquals("0.33333", new Decimal("1.000000").divide(new Decimal("3.000000")).asDecimal()); // operands (7 digits) are rounded to 5 first
+      assertEquals("0.3333", new Decimal("1.000").divide(new Decimal("3.000")).asDecimal()); // limited by operand precision
+      assertEquals("0.25", new Decimal("1").divide(new Decimal("4")).asDecimal()); // terminating
+      assertThrows(IllegalArgumentException.class, () -> Decimal.setDividePrecisionLimit(0));
+    } finally {
+      Decimal.setDividePrecisionLimit(saved);
+    }
+  }
+
+  @Test
+  public void testInvalidStrings() {
+    for (String s : new String[] {"", "-", ".", "1.", "--1", "1.2.3", "1e", "1e-", " 1", "1 ", "\u0663", "1\u0663", "1e\u0663", "1e99999999999"})
+      assertThrows(UcumException.class, () -> new Decimal(s), "'"+s+"' should not be a valid decimal");
+  }
+
+  @Test
+  public void testExponentLimit() throws UcumException {
+    assertEquals("1e1000", new Decimal("1e1000").asScientific());
+    assertEquals("1e-1000", new Decimal("1e-1000").asScientific());
+    assertEquals("1.5e1000", new Decimal("15e999").asScientific());
+    // these can't be represented as strings without exhausting memory
+    assertThrows(UcumException.class, () -> new Decimal("1e1001"));
+    assertThrows(UcumException.class, () -> new Decimal("1e-1002"));
+    assertThrows(UcumException.class, () -> new Decimal("1e300000000"));
+    assertThrows(UcumException.class, () -> new Decimal("1e2147483647"));
+    assertThrows(UcumException.class, () -> new Decimal("1.5e2147483647")); // used to overflow to 0.15
+  }
+
+  @Test
+  public void testIsWholeNumber() throws UcumException {
+    for (String s : new String[] {"0", "1", "10", "1000", "1e3", "1.5e3", "1e-3", "0.0", "0.5", "1.0", "1.50", "12.5", "-3", "-3.5", "1.23e1", "1.23e2", "0.000123"}) {
+      Decimal d = new Decimal(s);
+      assertEquals(!d.asDecimal().contains("."), d.isWholeNumber(), s);
+    }
+  }
+
+  @Test
+  public void testLongNumbersAreCheap() throws UcumException {
+    assertTimeoutPreemptively(Duration.ofSeconds(10), () -> {
+      String ones = "1."+repeat('1', 200000);
+      String sevens = "1."+repeat('7', 200000);
+      // these used to take minutes: work is now limited to the precision limits
+      assertEquals("1.687500000000000000000000000000000000000e0", new Decimal("3").divide(new Decimal(sevens)).asScientific()); // 3 / (16/9) = 27/16
+      assertEquals("3.703703703703703703703703703703703703703e-1", new Decimal(ones).divide(new Decimal("3")).asScientific()); // dividend rounded to 40 1s first
+      assertEquals("2.222222222222222222222222222222222222222e0", new Decimal(ones).multiply(new Decimal("2")).asScientific());
+      // leading zeros 
+      assertEquals("1e-200001", new Decimal("0."+repeat('0', 200000)+"1").asScientific());
+      assertEquals("1", new Decimal(repeat('0', 200000)+"1").asDecimal());
+    });
+  }
+
+  private static String repeat(char c, int count) {
+    StringBuilder b = new StringBuilder();
+    for (int i = 0; i < count; i++)
+      b.append(c);
+    return b.toString();
+  }
 }

@@ -47,6 +47,7 @@ import org.fhir.ucum.DefinedUnit;
 import org.fhir.ucum.Prefix;
 import org.fhir.ucum.UcumException;
 import org.fhir.ucum.UcumModel;
+import org.fhir.ucum.Utilities;
 import org.fhir.ucum.Value;
 import org.fhir.ucum.utils.XmlUtils;
 import org.w3c.dom.Document;
@@ -122,7 +123,7 @@ public class XmlDefinitionsParser implements DefinitionsProvider {
 
 	private Value parseValue(Element x, String context) throws UcumException, IOException  {
 		Decimal val = null;
-		if (x.getAttribute("value") != null) 
+		if (!Utilities.noString(x.getAttribute("value"))) // special units don't have a value 
 			try {
 				if (x.getAttribute("value").contains("."))
 					val = new Decimal(x.getAttribute("value"), 24); // unlimited precision for these

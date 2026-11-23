@@ -35,7 +35,24 @@ package org.fhir.ucum;
 
 public class ExpressionParser {
 
+	/**
+	 * Limits on the complexity of a unit expression. Converting a unit to canonical form
+	 * multiplies exact decimal values together once per unit of exponent, so without these
+	 * a short hostile unit string (e.g. "km2000000000" or a long chain of "Ym24") can 
+	 * consume unbounded CPU. The limits are well beyond anything used in practice 
+	 * (the largest real exponents are things like 10*23 or 10*-24). 
+	 */
+	public static final int MAX_EXPONENT = 30; // absolute value of any single exponent
+	public static final int MAX_TOTAL_EXPONENT = 60; // sum of absolute values of all exponents in the expression
+	public static final int MAX_COMPONENTS = 20; // number of symbols and numbers in the expression
+	public static final int MAX_NESTING = 10; // depth of nested brackets
+	public static final int MAX_TERMS = 50; // number of terms (including annotations and stray '/'s) - each is a level of recursion
+
 	private UcumModel model;
+	private int componentCount;
+	private int totalExponent;
+	private int nesting;
+	private int termCount;
 	
 	/**
 	 * @param model
@@ -46,6 +63,10 @@ public class ExpressionParser {
 	}
 
 	public Term parse(String code) throws UcumException  {
+		componentCount = 0;
+		totalExponent = 0;
+		nesting = 0;
+		termCount = 0;
 		Lexer lexer = new Lexer(code);
 		Term res = parseTerm(lexer, true);
 		if (!lexer.finished())
@@ -54,6 +75,9 @@ public class ExpressionParser {
 	}
 	
 	private Term parseTerm(Lexer lexer, boolean first) throws UcumException  {
+		termCount++;
+		if (termCount > MAX_TERMS)
+			lexer.error("The unit expression is too complex (limit is "+MAX_TERMS+" terms)");
 		Term res = new Term();
 		if (first && lexer.getType() == TokenType.NONE) {
 			res.setComp(new Factor(1));
@@ -85,8 +109,13 @@ public class ExpressionParser {
 	}
 
 	private Component parseComp(Lexer lexer) throws UcumException  {
+		if (lexer.getType() == TokenType.NUMBER || lexer.getType() == TokenType.SYMBOL) {
+			componentCount++;
+			if (componentCount > MAX_COMPONENTS)
+				lexer.error("Too many components in the unit expression (limit is "+MAX_COMPONENTS+")");
+		}
 		if (lexer.getType() == TokenType.NUMBER) { 
-			Factor fact = new Factor(lexer.getTokenAsInt());
+			Factor fact = new Factor(parseInt(lexer));
 			lexer.consume();
 			return fact;
 		} else if (lexer.getType() == TokenType.SYMBOL)
@@ -94,8 +123,12 @@ public class ExpressionParser {
 		else if  (lexer.getType() == TokenType.NONE)
 			lexer.error("unexpected end of expression looking for a symbol or a number");
 		else if (lexer.getType() == TokenType.OPEN) {
+      nesting++;
+      if (nesting > MAX_NESTING)
+        lexer.error("Brackets are nested too deeply (limit is "+MAX_NESTING+")");
       lexer.consume();
       Term res = parseTerm(lexer, true);
+      nesting--;
       if (lexer.getType() == TokenType.CLOSE) 
         lexer.consume();
       else
@@ -131,16 +164,31 @@ public class ExpressionParser {
 			if (unit != null) 
 				symbol.setUnit(unit);
 			else if (!sym.equals("1"))
-				lexer.error("The unit '"+sym+"' is unknown");
+				lexer.error("The unit '"+Utilities.truncate(sym)+"' is unknown");
 		}
 		
 		lexer.consume();
 		if (lexer.getType() == TokenType.NUMBER) {
-			symbol.setExponent(lexer.getTokenAsInt());
+			int exp = parseInt(lexer);
+			if (exp > MAX_EXPONENT || exp < -MAX_EXPONENT)
+				lexer.error("The exponent "+exp+" is too large (limit is +/-"+MAX_EXPONENT+")");
+			symbol.setExponent(exp);
 			lexer.consume();
 		} else
 			symbol.setExponent(1);
+		totalExponent += Math.abs(symbol.getExponent());
+		if (totalExponent > MAX_TOTAL_EXPONENT)
+			lexer.error("The exponents in the unit expression are too large in total (limit is "+MAX_TOTAL_EXPONENT+")");
 
 		return symbol;
+	}
+
+	private int parseInt(Lexer lexer) throws UcumException {
+		try {
+			return lexer.getTokenAsInt();
+		} catch (NumberFormatException e) {
+			lexer.error("The number '"+Utilities.truncate(lexer.getToken())+"' is not valid");
+			return 0; // never gets here
+		}
 	}
 }
