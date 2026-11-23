@@ -153,12 +153,13 @@ public class UcumEssenceService implements UcumService {
 	 */
 	@Override
   public String validate(String unit) {
-		assert unit != null : paramError("validate", "unit", "must not be null");
+		if (unit == null) // not an assertion: callers rely on validate() to report bad input
+			return "unit must not be null";
 		try {
 			new ExpressionParser(model).parse(unit);
 			return null;
 		} catch (Exception e) {
-			return e.getMessage();
+			return errorMessage(e);
 		}
 	}
 
@@ -177,15 +178,15 @@ public class UcumEssenceService implements UcumService {
 					if (property.equals(can.getUnits().get(0).getBase().getProperty()))
 						return null;
 					else
-						return "unit "+unit+" is of the property type "+can.getUnits().get(0).getBase().getProperty()+" ("+cu+"), not "+property+" as required.";
+						return "unit "+Utilities.truncate(unit)+" is of the property type "+can.getUnits().get(0).getBase().getProperty()+" ("+cu+"), not "+Utilities.truncate(property)+" as required.";
 			}
 			// defined special case
 			if ("concentration".equals(property) && ("g/L".equals(cu) || "mol/L".equals(cu)))
 				return null;
 			
-			return "unit "+unit+" has the base units "+cu+", and are not from the property "+property+" as required.";
+			return "unit "+Utilities.truncate(unit)+" has the base units "+cu+", and are not from the property "+Utilities.truncate(property)+" as required.";
 		} catch (Exception e) {
-			return e.getMessage();
+			return errorMessage(e);
 		}
 	}
 
@@ -201,10 +202,10 @@ public class UcumEssenceService implements UcumService {
 			Canonical can = new Converter(model, handlers).convert(term);
 			String cu = new ExpressionComposer().compose(can, false);
 			if (!canonical.equals(cu))
-				return "unit "+unit+" has the base units "+cu+", not "+canonical+" as required.";
+				return "unit "+Utilities.truncate(unit)+" has the base units "+cu+", not "+Utilities.truncate(canonical)+" as required.";
 			return null;
 		} catch (Exception e) {
-			return e.getMessage();
+			return errorMessage(e);
 		}
 	}
 
@@ -235,7 +236,7 @@ public class UcumEssenceService implements UcumService {
 			Term term = new ExpressionParser(model).parse(unit);
 			return new ExpressionComposer().compose(new Converter(model, handlers).convert(term), false);	
 		} catch (Exception e) {
-			throw new UcumException("Error processing "+unit+": "+e.getMessage(), e);
+			throw new UcumException("Error processing "+Utilities.truncate(unit)+": "+e.getMessage(), e);
 		}
 	}
 	
@@ -256,6 +257,14 @@ public class UcumEssenceService implements UcumService {
 		return result;
 	}
 	
+	/**
+	 * The validate methods return null to mean 'valid', so an exception without a message 
+	 * must still produce a message
+	 */
+	private String errorMessage(Exception e) {
+		return e.getMessage() != null ? e.getMessage() : e.getClass().getName();
+	}
+
 	private boolean checkStringParam(String s) {
 		return s != null && !s.equals("");
 	}
@@ -301,7 +310,7 @@ public class UcumEssenceService implements UcumService {
 	  String s = new ExpressionComposer().compose(src, false);
 	  String d = new ExpressionComposer().compose(dst, false);
 	  if (!s.equals(d))
-	    throw new UcumException("Unable to convert between units "+sourceUnit+" and "+destUnit+" as they do not have matching canonical forms ("+s+" and "+d+" respectively)");
+	    throw new UcumException("Unable to convert between units "+Utilities.truncate(sourceUnit)+" and "+Utilities.truncate(destUnit)+" as they do not have matching canonical forms ("+s+" and "+d+" respectively)");
 	  Decimal canValue = value.multiply(src.getValue());
 	  Decimal res = canValue.divide(dst.getValue());
 	  if (value.isWholeNumber()) {

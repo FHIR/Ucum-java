@@ -109,8 +109,11 @@ public interface UcumService {
 	 * 
 	 * @param kind - can be null. scope of search
 	 * @param text - required
-	 * @param isRegex
+	 * @param isRegex - if true, text is a regular expression that must match the whole of a name, code or property
 	 * @return
+	 * @throws IllegalArgumentException if isRegex and text is not a valid regular expression, or it takes
+	 *   too long to evaluate (more than 500ms in total - this protects against expressions that 
+	 *   backtrack catastrophically)
 	 */
 	public abstract List<Concept> search(ConceptKind kind, String text, boolean isRegex);
 

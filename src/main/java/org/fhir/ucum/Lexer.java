@@ -51,9 +51,7 @@ public class Lexer {
 	 */
 	public Lexer(String source) throws UcumException  {
 		super();
-		this.source = source;
-		if (source == null)
-			source = "";
+		this.source = source == null ? "" : source;
 		index = 0;
 		consume();
 	}
@@ -71,21 +69,23 @@ public class Lexer {
 					checkAnnotation(ch) ||
 					checkNumber(ch) ||
 					checkNumberOrSymbol(ch)))
-				throw new UcumException("Error processing unit '"+source+"': unexpected character '"+ch+"' at position "+Integer.toString(start));			
+				throw new UcumException("Error processing unit '"+Utilities.truncate(source)+"': unexpected character '"+ch+"' at position "+Integer.toString(start));			
 		}		
 	}
 
 	private boolean checkNumber(char ch) throws UcumException  {
 		if (ch == '+' || ch == '-') {
-			token = String.valueOf(ch);
+			StringBuilder b = new StringBuilder();
+			b.append(ch);
 			ch = peekChar();
 			while ((ch >= '0' && ch <= '9')) {
-				token = token + ch;
+				b.append(ch);
 				index++;
 				ch = peekChar();
 			}
+			token = b.toString();
 			if (token.length() == 1) {
-				throw new UcumException("Error processing unit'"+source+"': unexpected character '"+ch+"' at position "+Integer.toString(start)+": a + or - must be followed by at least one digit");			
+				throw new UcumException("Error processing unit'"+Utilities.truncate(source)+"': unexpected character '"+ch+"' at position "+Integer.toString(start)+": a + or - must be followed by at least one digit");			
 				}
 			type = TokenType.NUMBER;
 			return true;
@@ -97,18 +97,20 @@ public class Lexer {
 		boolean isSymbol = false;
 		boolean inBrackets = false;
 		if (isValidSymbolChar(ch, true, false)) {
-			token = String.valueOf(ch);
+			StringBuilder b = new StringBuilder();
+			b.append(ch);
 			isSymbol = isSymbol || !((ch >= '0' && ch <= '9'));
 			inBrackets = checkBrackets(ch, inBrackets);
 			ch = peekChar();
 			inBrackets = checkBrackets(ch, inBrackets);
 			while (isValidSymbolChar(ch, !isSymbol || inBrackets, inBrackets)) {
-				token = token + ch;
+				b.append(ch);
 				isSymbol = isSymbol || ((ch != NO_CHAR) && !((ch >= '0' && ch <= '9')));
 				index++;
 				ch = peekChar();
 				inBrackets = checkBrackets(ch, inBrackets);
 			}
+			token = b.toString();
 			if (isSymbol)
 				type = TokenType.SYMBOL;
 			else
@@ -143,11 +145,11 @@ public class Lexer {
 		if (ch == '{') {
 			StringBuilder b = new StringBuilder();
 			while (ch != '}') {
+				if (index >= source.length()) 
+					throw new UcumException("Error processing unit '"+Utilities.truncate(source)+"': unterminated annotation");
 				ch = nextChar();
 				if (!Utilities.isAsciiChar(ch))
-					throw new UcumException("Error processing unit'"+source+"': Annotation contains non-ascii characters");
-				if (ch == 0) 
-					throw new UcumException("Error processing unit'"+source+"': unterminated annotation");
+					throw new UcumException("Error processing unit '"+Utilities.truncate(source)+"': Annotation contains non-ascii characters");
 				b.append(ch);
 			}
 			// got to the end of the annotation - need to do it again
@@ -192,7 +194,7 @@ public class Lexer {
 	}
 
 	public void error(String errMsg) throws UcumException  {
-		throw new UcumException("Error processing unit '"+source+"': "+ errMsg +"' at position "+Integer.toString(start));			
+		throw new UcumException("Error processing unit '"+Utilities.truncate(source)+"': "+ errMsg +"' at position "+Integer.toString(start));			
 		
 	}
 
