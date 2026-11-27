@@ -380,7 +380,7 @@ public class Decimal {
 				s1 = s1 + stringMultiply('0', s2.length() - s1.length());
 			else if (s2.length() < s1.length()) 
 				s2 = s2 + stringMultiply('0', s1.length() - s2.length());
-			int result = s1.compareTo(s2);
+			int result = Integer.signum(s1.compareTo(s2));
 			if (thisNeg)
 				result = -result;
 			return result;

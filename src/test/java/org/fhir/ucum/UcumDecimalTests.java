@@ -800,6 +800,12 @@ private String getAddSubMessage(String s1, String s2, String s3, String op, Deci
     assertTrue(negZero.equals((Object) posZero));
     assertEquals(-1, negZero.comparesTo(new Decimal("1")));
     assertEquals(1, negZero.comparesTo(new Decimal("-1")));
+    assertEquals(-1, negZero.comparesTo(new Decimal("879810669895")));
+    assertEquals(1, new Decimal("879810669895").comparesTo(negZero));
+    assertEquals(-1, new Decimal("2").comparesTo(new Decimal("9")));
+    assertEquals(1, new Decimal("9").comparesTo(new Decimal("2")));
+    assertEquals(-1, new Decimal("-9").comparesTo(new Decimal("-2")));
+    assertEquals(1, new Decimal("-2").comparesTo(new Decimal("-9")));
   }
 
   private static String repeat(char c, int count) {
