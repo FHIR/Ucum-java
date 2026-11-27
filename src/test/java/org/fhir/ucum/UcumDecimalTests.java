@@ -2,9 +2,12 @@ package org.fhir.ucum;
 
 
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
 
@@ -749,6 +752,60 @@ private String getAddSubMessage(String s1, String s2, String s3, String op, Deci
       assertEquals("1e-200001", new Decimal("0."+repeat('0', 200000)+"1").asScientific());
       assertEquals("1", new Decimal(repeat('0', 200000)+"1").asDecimal());
     });
+  }
+
+  @Test
+  public void testDivideByZero() throws UcumException {
+    assertThrows(UcumException.class, () -> new Decimal("1").divide(new Decimal("0")));
+    assertThrows(UcumException.class, () -> new Decimal("0").divide(new Decimal("0")));
+    assertThrows(UcumException.class, () -> new Decimal("0").divide(new Decimal("0.00")));
+    assertEquals("0", new Decimal("0").divide(new Decimal("5")).asDecimal());
+  }
+
+  @Test
+  public void testAddSubtractSmallAndScientificValues() throws UcumException {
+    assertEquals("0.02", new Decimal("0.01").add(new Decimal("0.01")).asDecimal());
+    assertEquals("0.10", new Decimal("0.05").add(new Decimal("0.05")).asDecimal());
+    assertEquals("0.11", new Decimal("0.05").add(new Decimal("0.06")).asDecimal());
+    assertEquals("0.002", new Decimal("0.001").add(new Decimal("0.001")).asDecimal());
+    assertEquals("0.04", new Decimal("0.05").subtract(new Decimal("0.01")).asDecimal());
+    assertTrue(new Decimal("0.01").subtract(new Decimal("0.01")).isZero());
+    assertEquals("2000", new Decimal("1e3").add(new Decimal("1e3")).asDecimal());
+    assertEquals("11000", new Decimal("9e3").add(new Decimal("2e3")).asDecimal());
+    assertEquals("500", new Decimal("1e3").subtract(new Decimal("5e2")).asDecimal());
+    assertEquals("0", new Decimal("1e3").subtract(new Decimal("1e3")).asDecimal());
+    assertEquals("999", new Decimal("1000").subtract(new Decimal("1")).asDecimal());
+    assertEquals("99.999", new Decimal("100.000").subtract(new Decimal("0.001")).asDecimal());
+    assertEquals("-999", new Decimal("1").subtract(new Decimal("1000")).asDecimal());
+  }
+
+  @Test
+  public void testNullAndPrecisionGuards() throws UcumException {
+    assertThrows(UcumException.class, () -> new Decimal((String) null));
+    assertThrows(UcumException.class, () -> new Decimal((String) null, 5));
+    assertThrows(UcumException.class, () -> new Decimal("10", -1));
+    Decimal one = new Decimal("1");
+    assertDoesNotThrow(() -> one.limitPrecisionTo(null));
+    assertFalse(one.equals(null, new Decimal("0.1")));
+    assertFalse(one.equals(new Decimal("1"), null));
+  }
+
+  @Test
+  public void testNegativeZeroComparisonConsistency() throws UcumException {
+    Decimal negZero = new Decimal("-0");
+    Decimal posZero = new Decimal("0");
+    assertEquals(0, negZero.comparesTo(posZero));
+    assertEquals(0, posZero.comparesTo(negZero));
+    assertTrue(negZero.equals(posZero));
+    assertTrue(negZero.equals((Object) posZero));
+    assertEquals(-1, negZero.comparesTo(new Decimal("1")));
+    assertEquals(1, negZero.comparesTo(new Decimal("-1")));
+    assertEquals(-1, negZero.comparesTo(new Decimal("879810669895")));
+    assertEquals(1, new Decimal("879810669895").comparesTo(negZero));
+    assertEquals(-1, new Decimal("2").comparesTo(new Decimal("9")));
+    assertEquals(1, new Decimal("9").comparesTo(new Decimal("2")));
+    assertEquals(-1, new Decimal("-9").comparesTo(new Decimal("-2")));
+    assertEquals(1, new Decimal("-2").comparesTo(new Decimal("-9")));
   }
 
   private static String repeat(char c, int count) {

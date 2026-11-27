@@ -1,0 +1,1 @@
+* `Decimal`: `0 / 0` now throws `UcumException` instead of returning `0`; fix `add()`/`subtract()` for small decimals, scientific notation, and multi-digit borrows; normalize `comparesTo()` to return `-1`/`0`/`1` (treating `-0` as equal to `0`) and guard against `null` / negative precision

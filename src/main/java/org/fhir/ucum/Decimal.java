@@ -148,6 +148,8 @@ public class Decimal {
 	
 	public Decimal(String value) throws UcumException  {
 		super();
+		if (value == null)
+			throw new UcumException("'null' is not a valid decimal");
 		value = value.toLowerCase();
 		if (value.contains("e"))
 			setValueScientific(value);
@@ -168,6 +170,10 @@ public class Decimal {
 	 */
 	public Decimal(String value, int precision) throws UcumException  {
 		super();
+		if (value == null)
+			throw new UcumException("'null' is not a valid decimal");
+		if (precision < 0)
+			throw new UcumException("Precision cannot be negative: "+precision);
 		value = value.toLowerCase();
 		if (value.contains("e"))
 			setValueScientific(value);
@@ -354,9 +360,17 @@ public class Decimal {
 		if (other == null)
 			return 0;
 
-		if (this.negative && !other.negative)
+		boolean thisZero = this.isZero();
+		boolean otherZero = other.isZero();
+		if (thisZero && otherZero)
+			return 0;
+
+		boolean thisNeg = this.negative && !thisZero;
+		boolean otherNeg = other.negative && !otherZero;
+
+		if (thisNeg && !otherNeg)
 			return -1;
-		else if (!this.negative && other.negative)
+		else if (!thisNeg && otherNeg)
 			return 1;
 		else {
 			int max = Math.max(this.decimal, other.decimal);
@@ -364,10 +378,10 @@ public class Decimal {
 			String s2 = stringMultiply('0', max - other.decimal+1) + other.digits;
 			if (s1.length() < s2.length()) 
 				s1 = s1 + stringMultiply('0', s2.length() - s1.length());
-				else if (s2.length() < s1.length()) 
-					s2 = s2 + stringMultiply('0', s1.length() - s2.length());
-			int result = s1.compareTo(s2);
-			if (this.negative)
+			else if (s2.length() < s1.length()) 
+				s2 = s2 + stringMultiply('0', s1.length() - s2.length());
+			int result = Integer.signum(s1.compareTo(s2));
+			if (thisNeg)
 				result = -result;
 			return result;
 		}
@@ -492,11 +506,11 @@ public class Decimal {
 	  
 	  if (max != s3.length()) {
 	    if (max < 0)
-	      throw new Error("Unhandled");
+	      s3 = "0." + stringMultiply('0', -max) + s3;
 	    else if (max < s3.length())
 	      s3 = insert(".", s3, max);
 	    else
-	      throw new Error("Unhandled");
+	      s3 = s3 + stringMultiply('0', max - s3.length());
 	  }
 	  
 	  Decimal result = new Decimal();
@@ -549,11 +563,11 @@ public class Decimal {
 	    s3 = delete(s3, 0, 1);
 	  if (max != s3.length()) {
 	    if (max < 0)
-	      throw new Error("Unhandled");
+	      s3 = "0." + stringMultiply('0', -max) + s3;
 	    else if (max < s3.length())
 	      s3 = insert(".", s3, max);
 	    else
-	      throw new Error("Unhandled");
+	      s3 = s3 + stringMultiply('0', max - s3.length());
 	  }
 
 	  Decimal result = new Decimal();
@@ -596,28 +610,21 @@ public class Decimal {
 	  for (int i = 0; i < s2.length(); i++)
 	  	result[i] = '0';
 
-	  int c = 0;
+	  int borrow = 0;
 	  for (int i = s1.length() - 1; i >= 0; i--) {
-	    int t = c + (dig(s1.charAt(i)) - dig(s2.charAt(i)));
+	    int t = dig(s1.charAt(i)) - dig(s2.charAt(i)) - borrow;
 	    if (t < 0) {
 	      t = t + 10;
-	      if (i == 0) 
-	        throw new Error("internal logic error");
-	      else
-	        s1 = replaceChar(s1, i-1, cdig(dig(s1.charAt(i-1))-1));
+	      borrow = 1;
+	    } else {
+	      borrow = 0;
 	    }
 	    result[i] = cdig(t);
 	  }
-	  assert(c == 0);
+	  if (borrow != 0)
+	    throw new Error("internal logic error");
 	  return new String(result);
 	}
-
-	private String replaceChar(String s, int offset, char c) {
-	  if (offset == 0)
-	  	return String.valueOf(c)+s.substring(1);
-	  else
-	  	return s.substring(0, offset)+c+s.substring(offset+1); 
-  }
 
 
 	public Decimal multiply(Decimal other) {
@@ -728,11 +735,11 @@ public class Decimal {
 
 	private Decimal doDivide(Decimal other, int limit) throws UcumException  {
 
-		if (isZero())
-			return zero();
-
 		if (other.isZero())
 			throw new UcumException("Attempt to divide "+toString()+" by zero");
+
+		if (isZero())
+			return zero();
 
 		String s = "0"+other.digits;
 		int m = Math.max(digits.length(), other.digits.length()) + limit; // max loops we'll do
@@ -898,6 +905,8 @@ public class Decimal {
 	}
 
 	public boolean equals(Decimal value, Decimal maxDifference) {
+	  if (value == null || maxDifference == null)
+	    return false;
 	  Decimal diff = this.subtract(value).absolute();
 	  return diff.comparesTo(maxDifference) <= 0;
   }
@@ -923,7 +932,7 @@ public class Decimal {
 
   public void limitPrecisionTo(Decimal other) {
     // precision can't be greater than other 
-    if (precision > other.precision) {
+    if (other != null && precision > other.precision) {
       precision = other.precision;
     }
   }
